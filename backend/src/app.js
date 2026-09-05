@@ -11,6 +11,7 @@ const transactionRoutes = require('./routes/transactions');
 const analyticsRoutes = require('./routes/analytics');
 const exportRoutes = require('./routes/export');
 const aiRoutes = require('./routes/ai');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/auth', authRoutes);
 
 // Catch-all 404 handler for unknown API routes
 app.use('/api/*', (req, res) => {

@@ -86,6 +86,16 @@ function initSchema(db) {
       FOREIGN KEY (borrower_id) REFERENCES borrowers(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'staff',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_books_id ON books(book_id);
     CREATE INDEX IF NOT EXISTS idx_books_category ON books(category);
     CREATE INDEX IF NOT EXISTS idx_borrowers_student_id ON borrowers(student_id);

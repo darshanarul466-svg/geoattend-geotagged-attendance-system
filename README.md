@@ -1,8 +1,8 @@
 # 📚 LibraHub — Smart Library Book Issue & Return Management System
 
-> **NSCC / SRMIST 2nd Year Full-Stack Web Development Task 1 Submission**  
-> Developed by **Darshan A** (`da5512@srmist.edu.in`)  
-> Live Demo: [Deploy on Vercel](#vercel-deployment-guide) • Stack: React 19 + Node.js 24 + Express + Native SQLite
+> **NSCC Full-Stack Web Development Task 1**  
+> An open-source, production-ready library circulation and inventory management system.  
+> Stack: React 19 + Node.js 24 + Express + Native SQLite • Deployable on Vercel
 
 ---
 
@@ -16,13 +16,19 @@ Additionally, LibraHub features **LibraBot**, an interactive AI Assistant powere
 
 ## 🚀 Key Features Implemented
 
-### 1. Librarian Frontend (React 19 + Tailwind CSS)
-- **Executive Dashboard (Brownie Subtask ⭐)**:
-  - Metric Overview Cards: **Total Books**, **Registered Members**, **Currently Issued Copies**, and **Overdue Loans**.
-  - **Dynamic Time Greeting**: Context-aware greeting (*"Good morning / afternoon / evening, Darshan 👋"*).
-  - **Interactive Usage Trend**: Monthly bar chart comparison of books issued vs books returned.
-  - **Popular Categories Breakdown**: Visual progress bars displaying inventory density across departments.
-  - **Recent Transactions & Recently Added Books**: Live feeds with quick status chips.
+### 1. Role-Based Authentication & Access Control (Admin vs Staff)
+- **Role Permissions**:
+  - **Chief Librarian (Admin)**: Full administrative control, catalog book deletion, fine revenue metrics, user management, and complete audit exports.
+  - **Assistant Librarian (Staff)**: Circulation desk operations (QR Scanning, Issue, Return, Borrower Lookups). Catalog deletion is restricted.
+- **Dynamic User Profiles**: Automatically adapts the dashboard greeting (*"Good morning / afternoon / evening, [User] 👋"*), header avatar, and audit trails to the active logged-in user.
+- **1-Click Test Credentials**: Pre-configured instant sign-in buttons for Admin (`admin` / `admin123`) and Staff (`staff` / `staff123`), plus custom sign-in support.
+
+### 2. Executive Dashboard (Brownie Subtask ⭐)
+- Metric Overview Cards: **Total Books**, **Registered Members**, **Currently Issued Copies**, and **Overdue Loans**.
+- **Dynamic Time Greeting**: Context-aware greeting based on active time.
+- **Interactive Usage Trend**: Monthly bar chart comparison of books issued vs books returned.
+- **Popular Categories Breakdown**: Visual progress bars displaying inventory density across departments.
+- **Recent Transactions & Recently Added Books**: Live feeds with quick status chips and reliable hardcover book jackets.
 - **QR Code Generation & Printable Sticker Labels**:
   - Encodes book metadata and identifier into high-density QR codes (`qrcode.react` Level H).
   - Printable official library spine sticker badge with book title, author, barcode visual, and category tag.

@@ -43,31 +43,33 @@ Instructions:
 - If a book is in our catalog, clearly tell the user how many copies are currently available and where it is located.
 - If asked for something not in the catalog, give insightful academic recommendations and suggest asking the librarian to procure it.`;
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = (req.body.apiKey && req.body.apiKey.trim()) || process.env.GEMINI_API_KEY;
 
-    if (apiKey) {
-      try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        const result = await model.generateContent(`${systemPrompt}\n\nUser Question: ${message}`);
-        const reply = result.response.text();
-        return res.json({
-          success: true,
-          provider: 'Google Gemini (gemini-1.5-flash)',
-          reply
-        });
-      } catch (geminiError) {
-        console.warn('[Gemini AI] API error, falling back to local engine:', geminiError.message);
-      }
+    if (!apiKey) {
+      return res.json({
+        success: false,
+        apiKeyRequired: true,
+        reply: "⚠️ Gemini AI is not configured. Please enter your Gemini API key in the AI drawer settings or configure GEMINI_API_KEY in your server environment to enable live generative responses."
+      });
     }
 
-    // Intelligent local fallback if no API key is provided
-    const fallbackReply = generateLocalResponse(message, books);
-    res.json({
-      success: true,
-      provider: 'LibraBot Knowledge Engine (Local)',
-      reply: fallbackReply
-    });
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const result = await model.generateContent(`${systemPrompt}\n\nUser Question: ${message}`);
+      const reply = result.response.text();
+      return res.json({
+        success: true,
+        provider: 'Google Gemini (gemini-1.5-flash)',
+        reply
+      });
+    } catch (geminiError) {
+      console.warn('[Gemini AI] API error:', geminiError.message);
+      return res.status(500).json({
+        success: false,
+        message: `Gemini AI Error: ${geminiError.message}. Please check your API key.`
+      });
+    }
   } catch (error) {
     next(error);
   }
@@ -87,7 +89,7 @@ exports.autoFillBookMetadata = async (req, res, next) => {
       });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = (req.body.apiKey && req.body.apiKey.trim()) || process.env.GEMINI_API_KEY;
 
     if (apiKey) {
       try {

@@ -159,7 +159,7 @@ function seedData(db) {
     { student_id: 'RA2411003010156', name: 'Karthik Varma', email: 'kv1102@srmist.edu.in', phone: '+91 94450 67890', department: 'Electronics & Communication' },
     { student_id: 'RA2411003010214', name: 'Sneha Roy', email: 'sr7741@srmist.edu.in', phone: '+91 99620 12345', department: 'Data Science & AI' },
     { student_id: 'RA2411003010305', name: 'Vignesh Prasad', email: 'vp3390@srmist.edu.in', phone: '+91 98840 98765', department: 'Mechanical Engineering' },
-    { student_id: 'RA2411003010410', name: 'Darshan A', email: 'da5512@srmist.edu.in', phone: '+91 86034 05145', department: 'Computer Science & Engineering' }
+    { student_id: 'RA2411003010410', name: 'Arjun Nair', email: 'arjun.nair@srmist.edu.in', phone: '+91 98402 11223', department: 'Computer Science & Engineering' }
   ];
 
   const insertBorrower = db.prepare(`
@@ -300,7 +300,16 @@ function seedData(db) {
     );
   }
 
-  console.log('[Database] Seeded 12 books, 6 borrowers, and 9 transactions successfully.');
+  // Seed default admin and staff users
+  const insertUser = db.prepare(`
+    INSERT OR IGNORE INTO users (username, password, name, email, role)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+
+  insertUser.run('admin', 'admin123', 'Eleanor Vance', 'admin@librahub.edu', 'admin');
+  insertUser.run('staff', 'staff123', 'Marcus Reed', 'staff@librahub.edu', 'staff');
+
+  console.log('[Database] Seeded 12 books, 6 borrowers, 9 transactions, and 2 default user accounts successfully.');
 }
 
 module.exports = { seedData };

@@ -5,6 +5,7 @@ import DashboardView from './pages/DashboardView';
 import BooksView from './pages/BooksView';
 import MembersView from './pages/MembersView';
 import TransactionsView from './pages/TransactionsView';
+import LoginPage from './pages/LoginPage';
 import QRScannerModal from './components/QRScannerModal';
 import QRBadgeModal from './components/QRBadgeModal';
 import IssueModal from './components/IssueModal';
@@ -16,6 +17,16 @@ import { api } from './services/api';
 import { CheckCircle2, AlertCircle, X } from 'lucide-react';
 
 export default function App() {
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('librahub_current_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
   const [activeTab, setActiveTab] = useState('dashboard');
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('librahub_theme') === 'dark' || 
@@ -101,15 +112,28 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (currentUser) {
+      loadData();
+    }
+  }, [currentUser]);
+
+  const handleLoginSuccess = (user) => {
+    setCurrentUser(user);
+    localStorage.setItem('librahub_current_user', JSON.stringify(user));
+    showToast(`Signed in as ${user.name} (${user.role.toUpperCase()})`);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('librahub_current_user');
+    setCurrentUser(null);
+    showToast('Signed out successfully.');
+  };
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Handler for actions triggered from QR Scanner
   const handleScannerAction = (actionType, data) => {
     if (actionType === 'ISSUE') {
       setSelectedIssueBook(data.book);
@@ -121,17 +145,17 @@ export default function App() {
     }
   };
 
-  // Handler for navigation from command palette or dashboard
-  const handleNavigate = (tabId, params = {}) => {
+  const handleNavigate = (tabId) => {
     setActiveTab(tabId);
-    // If navigating to transactions with status filter
-    if (tabId === 'transactions' && params.status) {
-      // handed down through initial status
-    }
   };
 
+  // If not logged in, render the Login Page!
+  if (!currentUser) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-blue-500 selection:text-white">
+    <div className="min-h-screen flex bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 font-sans selection:bg-blue-500 selection:text-white">
       {/* Toast Notification */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50 animate-in slide-in-from-bottom-5 duration-200">
@@ -151,6 +175,7 @@ export default function App() {
         setActiveTab={setActiveTab}
         onOpenScanner={() => setIsScannerOpen(true)}
         overdueCount={stats ? stats.overdueCount : 0}
+        currentUser={currentUser}
       />
 
       {/* Main Content Area */}
@@ -162,6 +187,8 @@ export default function App() {
           setDarkMode={setDarkMode}
           overdueCount={stats ? stats.overdueCount : 0}
           onOpenAI={() => setIsAIOpen(true)}
+          currentUser={currentUser}
+          onLogout={handleLogout}
         />
 
         {/* Dynamic Page Views */}
@@ -178,6 +205,7 @@ export default function App() {
               onOpenAddMember={() => setIsAddMemberOpen(true)}
               onNavigate={handleNavigate}
               onOpenAI={() => setIsAIOpen(true)}
+              currentUser={currentUser}
             />
           )}
 
@@ -196,6 +224,7 @@ export default function App() {
                 setIsIssueOpen(true);
               }}
               onRefresh={loadData}
+              currentUser={currentUser}
             />
           )}
 
