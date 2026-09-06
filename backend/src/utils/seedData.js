@@ -179,7 +179,7 @@ function seedData(db) {
 
   // Transactions:
   // 1. Currently Issued (Active, not overdue)
-  // 2. Currently Overdue (Issued, due date in past -> triggers brownie subtask fine calculation!)
+  // 2. Currently Overdue (Issued, due date in past -> triggers automatic overdue fine calculation)
   // 3. Completed (Returned)
   const transactions = [
     // Active checkout: Clean Code -> Rohit S (Due in 7 days)

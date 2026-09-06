@@ -22,7 +22,7 @@ Additionally, LibraHub features **LibraBot**, an interactive AI Assistant powere
 - **Dynamic User Profiles**: Automatically adapts the dashboard greeting (*"Good morning / afternoon / evening, [User] 👋"*), header avatar, and audit trails to the active logged-in user.
 - **1-Click Test Credentials**: Pre-configured instant sign-in buttons for Admin (`admin` / `admin123`) and Staff (`staff` / `staff123`), plus custom sign-in support.
 
-### 2. Executive Dashboard (Brownie Subtask ⭐)
+### 2. Executive Circulation Dashboard
 - Metric Overview Cards: **Total Books**, **Registered Members**, **Currently Issued Copies**, and **Overdue Loans**.
 - **Dynamic Time Greeting**: Context-aware greeting based on active time.
 - **Interactive Usage Trend**: Monthly bar chart comparison of books issued vs books returned.
@@ -40,7 +40,7 @@ Additionally, LibraHub features **LibraBot**, an interactive AI Assistant powere
   - Manual ISBN / Book ID entry fallback.
 - **Full Catalog Management**:
   - Search and filter by Title, Author, Category, and Availability Status (*Available*, *Issued*, *All*).
-  - Add New Book with **1-Click AI Auto-Fill ⭐** (automatically recommends author, category, shelf placement, and synopsis).
+  - Add New Book with **1-Click AI Auto-Fill** (automatically recommends author, category, shelf placement, and synopsis).
   - Safe deletion safeguards (prevents deleting books with active loans).
 - **Student Membership Management**:
   - Register new university members (Name, Student ID, Institutional Email, Phone, Department).
@@ -51,7 +51,7 @@ Additionally, LibraHub features **LibraBot**, an interactive AI Assistant powere
 
 ---
 
-### 2. Robust Backend & Business Logic (Node.js + Express)
+### 3. Robust Backend & Business Logic (Node.js + Express)
 - **Strict Compliance**: **Supabase and Firebase are strictly prohibited** in the assignment. We implemented a custom backend architecture using Node 24 native `node:sqlite` (`DatabaseSync`), providing:
   - Zero external database installation needed (ACID transactions, foreign keys, prepared statements).
   - Instant reproducibility for evaluators.
@@ -59,7 +59,7 @@ Additionally, LibraHub features **LibraBot**, an interactive AI Assistant powere
   - Verifies book exists and `available_copies > 0`.
   - Atomic stock decrement (`available_copies = available_copies - 1`).
   - **Double-Checkout Guard**: Prevents issuing duplicate copies of the same book to the same student simultaneously.
-- **Automated Return & Overdue Fine Engine (Brownie Subtask ⭐)**:
+- **Automated Return & Overdue Fine Engine**:
   - Atomic stock increment (`available_copies = available_copies + 1`).
   - Calculates overdue duration in real-time (`daysOverdue = Math.ceil((now - dueDate) / 86400000)`).
   - Calculates penalty fines at **₹5.00 per calendar day overdue**.
@@ -67,7 +67,7 @@ Additionally, LibraHub features **LibraBot**, an interactive AI Assistant powere
 
 ---
 
-### 3. Data Export (CSV & Multi-Sheet Excel)
+### 4. Data Export (CSV & Multi-Sheet Excel)
 - **CSV Export** (`/api/export/csv`): Formatted comma-separated export containing:
   - *Book Title*, *Author*, *Book ID*, *Issued To*, *Borrower Email*, *Issue Timestamp*, *Due Date*, *Return Timestamp*, *Current Status*, *Days Overdue*, *Fine (INR)*, and *Notes*.
 - **Excel Export** (`/api/export/excel`): Formatted `.xlsx` spreadsheet generated with SheetJS (`xlsx`), featuring three dedicated tabs:
@@ -77,14 +77,14 @@ Additionally, LibraHub features **LibraBot**, an interactive AI Assistant powere
 
 ---
 
-### 4. Optional Bonus ⭐ — AI Integration (Google Gemini)
-- **LibraBot Chatbot** (`/api/ai/chat`): Ingests real-time catalog context to answer student and librarian queries:
+### 5. Built-in AI Circulation Assistant & Auto-Cataloging (LibraBot)
+- **LibraBot Circulation Copilot** (`/api/ai/chat`): Ingests real-time catalog context to answer circulation and library queries:
   - *"Which books on algorithms are currently available?"*
-  - *"Where is Clean Code located?"*
-  - *"Recommend 3 books for system design interview prep."*
-  - *"What is the library loan policy and overdue fine?"*
-- **1-Click AI Book Autofill** (`/api/ai/autofill`): Uses Gemini 1.5 Flash to automatically detect category, author, shelf location code, and generate a concise 2-sentence synopsis from a book title or ISBN.
-- **Graceful Fallback**: If no `GEMINI_API_KEY` is provided, the application switches to its built-in rule-based semantic engine so all features continue to work smoothly offline!
+  - *"Where is Clean Code located on the shelves?"*
+  - *"Recommend 3 books for system design study."*
+  - *"What is the library loan policy and overdue fine structure?"*
+- **1-Click AI Book Autofill** (`/api/ai/autofill`): Uses Google Gemini to automatically detect category, author, shelf location code, and generate a concise 2-sentence synopsis from a book title or ISBN.
+- **Graceful Fallback**: If no `GEMINI_API_KEY` is provided, the application switches to its built-in rule-based semantic engine so all catalog lookup features continue to work smoothly offline!
 
 ---
 
