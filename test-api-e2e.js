@@ -21,20 +21,20 @@ async function runE2ETests() {
     const adminLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'admin', password: 'admin123' })
+      body: JSON.stringify({ identifier: 'admin', password: 'admin123' })
     });
     const adminData = await adminLoginRes.json();
     if (!adminData.success || !adminData.user.isAdmin) throw new Error('Admin login failed');
     console.log(`  ✓ Logged in as Admin: "${adminData.user.name}" (Role: ${adminData.user.role})`);
 
-    const customLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+    const staffLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'sarah', password: 'secretpassword', name: 'Sarah Jenkins', role: 'staff' })
+      body: JSON.stringify({ identifier: 'staff', password: 'staff123' })
     });
-    const customData = await customLoginRes.json();
-    if (!customData.success || customData.user.name !== 'Sarah Jenkins') throw new Error('Custom user login failed');
-    console.log(`  ✓ Custom Staff login successful: "${customData.user.name}" (Role: ${customData.user.role})`);
+    const staffData = await staffLoginRes.json();
+    if (!staffData.success || staffData.user.role !== 'staff') throw new Error('Staff login failed');
+    console.log(`  ✓ Logged in as Staff: "${staffData.user.name}" (Role: ${staffData.user.role})`);
 
     // 3. Dashboard Analytics
     console.log('[3/9] Testing /api/analytics/dashboard...');
