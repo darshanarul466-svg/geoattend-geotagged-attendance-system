@@ -10,7 +10,12 @@ frontend/dist-ssr/
 
 # Environment variables
 .env
+.env.*
+*.env
 backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
 frontend/.env.local
 
 # Logs

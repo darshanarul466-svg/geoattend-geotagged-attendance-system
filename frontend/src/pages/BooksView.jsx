@@ -84,26 +84,26 @@ export default function BooksView({
       {/* Header & Main Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold font-serif text-slate-900 dark:text-white tracking-tight">
             Book Inventory & Catalog
           </h2>
           <p className="text-xs text-slate-500 mt-1 font-medium">
-            Manage library records, generate QR stickers, and track shelf placement.
+            Manage central library records, generate physical QR stickers, and track shelf placement.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
             onClick={onOpenScanner}
-            className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0E1626] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold shadow-2xs transition-all flex items-center gap-2"
+            className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-[#272D37] bg-white dark:bg-[#16191F] hover:bg-slate-50 dark:hover:bg-[#1E232B] text-slate-800 dark:text-slate-200 text-xs font-bold shadow-2xs transition-all flex items-center gap-2"
           >
-            <QrCode className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <QrCode className="w-4 h-4 text-forest-700 dark:text-emerald-400" />
             <span>Scan QR Desk</span>
           </button>
 
           <button
             onClick={onOpenAddBook}
-            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition-all flex items-center gap-2"
+            className="px-4 py-2.5 rounded-xl bg-forest-700 hover:bg-forest-800 text-white text-xs font-bold shadow-md shadow-forest-900/20 transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>Add New Book</span>
@@ -112,7 +112,7 @@ export default function BooksView({
       </div>
 
       {/* Search & Filter Toolbar */}
-      <div className="p-4 bg-white dark:bg-[#0E1626] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3.5">
+      <div className="p-4 bg-white dark:bg-[#16191F] rounded-3xl border border-slate-200 dark:border-[#272D37] shadow-xs space-y-3.5">
         <div className="flex flex-col md:flex-row items-center gap-3">
           {/* Search Input */}
           <div className="relative flex-1 w-full">
@@ -122,17 +122,17 @@ export default function BooksView({
               placeholder="Search by Title, Author, or ISBN / Book ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 dark:bg-[#131E3D] border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 font-medium"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] text-xs text-slate-900 dark:text-white focus:outline-none focus:border-forest-700 font-medium"
             />
           </div>
 
           {/* Availability Status Tabs */}
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#131E3D] p-1 rounded-xl w-full md:w-auto text-xs shrink-0 font-semibold">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#1E232B] p-1 rounded-xl w-full md:w-auto text-xs shrink-0 font-semibold">
             <button
               onClick={() => setAvailabilityFilter('all')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 availabilityFilter === 'all'
-                  ? 'bg-white dark:bg-[#0B132B] text-slate-900 dark:text-white shadow-2xs font-bold'
+                  ? 'bg-white dark:bg-[#16191F] text-slate-900 dark:text-white shadow-2xs font-bold'
                   : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
               }`}
             >
@@ -142,7 +142,7 @@ export default function BooksView({
               onClick={() => setAvailabilityFilter('available')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 availabilityFilter === 'available'
-                  ? 'bg-white dark:bg-[#0B132B] text-emerald-600 dark:text-emerald-400 shadow-2xs font-bold'
+                  ? 'bg-white dark:bg-[#16191F] text-emerald-600 dark:text-emerald-400 shadow-2xs font-bold'
                   : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
               }`}
             >
@@ -152,7 +152,7 @@ export default function BooksView({
               onClick={() => setAvailabilityFilter('issued')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 availabilityFilter === 'issued'
-                  ? 'bg-white dark:bg-[#0B132B] text-blue-600 dark:text-blue-400 shadow-2xs font-bold'
+                  ? 'bg-white dark:bg-[#16191F] text-forest-700 dark:text-emerald-400 shadow-2xs font-bold'
                   : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
               }`}
             >
@@ -165,10 +165,10 @@ export default function BooksView({
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
           <button
             onClick={() => setSelectedCategory('All')}
-            className={`px-3 py-1 rounded-full font-bold shrink-0 transition-all ${
+            className={`px-3.5 py-1.5 rounded-full font-bold shrink-0 transition-all ${
               selectedCategory === 'All'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-slate-100 dark:bg-[#131E3D] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                ? 'bg-forest-700 text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-[#1E232B] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             All Categories
@@ -177,10 +177,10 @@ export default function BooksView({
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1 rounded-full font-bold shrink-0 transition-all ${
+              className={`px-3.5 py-1.5 rounded-full font-bold shrink-0 transition-all ${
                 selectedCategory === cat
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-slate-100 dark:bg-[#131E3D] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  ? 'bg-forest-700 text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-[#1E232B] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               {cat}
@@ -194,7 +194,7 @@ export default function BooksView({
         {filteredBooks.map((b) => (
           <div
             key={b.book_id}
-            className="bg-white dark:bg-[#0E1626] rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-blue-400 dark:hover:border-blue-700 transition-all flex flex-col justify-between group"
+            className="bg-white dark:bg-[#16191F] rounded-3xl p-5 border border-slate-200 dark:border-[#272D37] shadow-xs hover:border-forest-700/50 dark:hover:border-forest-700/60 transition-all flex flex-col justify-between group"
           >
             <div>
               {/* Top Meta with Guaranteed BookCover */}
@@ -205,32 +205,32 @@ export default function BooksView({
                   author={b.author}
                   category={b.category}
                   bookId={b.book_id}
-                  className="w-18 h-26"
+                  className="w-20 h-28"
                 />
                 <div className="min-w-0 flex-1 text-xs">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded text-[10px]">
+                    <span className="font-mono font-bold text-forest-700 dark:text-emerald-400 bg-forest-50 dark:bg-forest-950/50 px-2 py-0.5 rounded text-[10px]">
                       {b.book_id}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-bold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                    <span className="text-[10px] text-slate-500 font-bold bg-slate-100 dark:bg-[#1E232B] px-2 py-0.5 rounded">
                       {b.category}
                     </span>
                   </div>
 
-                  <h3 className="font-bold text-sm text-slate-900 dark:text-white mt-1.5 leading-snug line-clamp-2">
+                  <h3 className="font-serif font-bold text-base text-slate-900 dark:text-white mt-1.5 leading-snug line-clamp-2">
                     {b.title}
                   </h3>
                   <p className="text-slate-500 text-xs mt-0.5 line-clamp-1 font-medium">by {b.author}</p>
 
                   <div className="mt-2.5 flex items-center gap-1.5 text-slate-500 text-[11px]">
-                    <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <MapPin className="w-3.5 h-3.5 text-terracotta-500 shrink-0" />
                     <span className="truncate font-medium">{b.shelf_location || 'Rack CS-01-A'}</span>
                   </div>
                 </div>
               </div>
 
               {/* Stock Status Bar */}
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#272D37] flex items-center justify-between text-xs">
                 <span className="text-slate-500 font-medium">Inventory Status:</span>
                 <span className={`font-bold flex items-center gap-1.5 ${
                   b.available_copies > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
@@ -242,13 +242,13 @@ export default function BooksView({
             </div>
 
             {/* Bottom Card Actions */}
-            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
+            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#272D37] flex items-center justify-between gap-2 text-xs">
               <button
                 onClick={() => onSelectQRBook(b)}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1.5 transition-colors"
+                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#272D37] hover:bg-slate-100 dark:hover:bg-[#1E232B] text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1.5 transition-colors"
                 title="View & Print QR Label"
               >
-                <QrCode className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                <QrCode className="w-3.5 h-3.5 text-forest-700 dark:text-emerald-400" />
                 <span>QR Badge</span>
               </button>
 
@@ -256,7 +256,7 @@ export default function BooksView({
                 {b.available_copies > 0 && (
                   <button
                     onClick={() => onSelectIssueBook(b)}
-                    className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-xs"
+                    className="px-4 py-1.5 rounded-xl bg-forest-700 hover:bg-forest-800 text-white font-bold transition-all shadow-xs"
                   >
                     Issue
                   </button>
@@ -286,7 +286,7 @@ export default function BooksView({
       </div>
 
       {filteredBooks.length === 0 && (
-        <div className="p-12 text-center bg-white dark:bg-[#0E1626] rounded-3xl border border-slate-200 dark:border-slate-800">
+        <div className="p-12 text-center bg-white dark:bg-[#16191F] rounded-3xl border border-slate-200 dark:border-[#272D37]">
           <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
           <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm">No books found</h3>
           <p className="text-xs text-slate-400 mt-1">Try adjusting your search query or filters.</p>

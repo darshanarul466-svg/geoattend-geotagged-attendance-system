@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100;
+    @apply bg-[#F6F4F0] text-[#1A1A1A] dark:bg-[#0F1115] dark:text-[#EDE8DF] antialiased selection:bg-[#193B2D] selection:text-white;
   }
 }
 

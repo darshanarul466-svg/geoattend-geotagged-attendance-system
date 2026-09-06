@@ -82,6 +82,7 @@ function initSchema(db) {
       status TEXT NOT NULL DEFAULT 'ISSUED',
       fine_amount REAL DEFAULT 0.0,
       notes TEXT,
+      processed_by TEXT DEFAULT 'Desk Librarian',
       FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE,
       FOREIGN KEY (borrower_id) REFERENCES borrowers(id) ON DELETE CASCADE
     );
@@ -89,9 +90,10 @@ function initSchema(db) {
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      salt TEXT NOT NULL,
       name TEXT NOT NULL,
-      email TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'staff',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
@@ -101,8 +103,47 @@ function initSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_borrowers_student_id ON borrowers(student_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_book ON transactions(book_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status);
+    CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
   `);
+
+  // Safe schema migration for existing databases
+  try {
+    const userColumns = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
+    if (userColumns.includes('password')) {
+      db.exec(`
+        CREATE TABLE users_temp (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT UNIQUE NOT NULL,
+          email TEXT UNIQUE NOT NULL,
+          password_hash TEXT NOT NULL,
+          salt TEXT NOT NULL,
+          name TEXT NOT NULL,
+          role TEXT NOT NULL DEFAULT 'staff',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        DROP TABLE users;
+        ALTER TABLE users_temp RENAME TO users;
+        CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+      `);
+    } else {
+      if (!userColumns.includes('password_hash')) {
+        db.exec("ALTER TABLE users ADD COLUMN password_hash TEXT;");
+      }
+      if (!userColumns.includes('salt')) {
+        db.exec("ALTER TABLE users ADD COLUMN salt TEXT;");
+      }
+    }
+    const txColumns = db.prepare("PRAGMA table_info(transactions)").all().map(c => c.name);
+    if (!txColumns.includes('processed_by')) {
+      db.exec("ALTER TABLE transactions ADD COLUMN processed_by TEXT DEFAULT 'Desk Librarian';");
+    }
+  } catch (err) {
+    console.error('[Database Migration]', err.message);
+  }
 }
+
 
 function autoSeed(db) {
   const row = db.prepare('SELECT COUNT(*) as count FROM books').get();

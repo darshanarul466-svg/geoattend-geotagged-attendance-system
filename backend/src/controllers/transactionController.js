@@ -166,9 +166,10 @@ exports.issueBook = (req, res, next) => {
     }
 
     // Insert transaction
+    const processedBy = (req.user && req.user.name) ? req.user.name : (req.body.processedBy || 'Desk Librarian');
     const insertTx = db.prepare(`
-      INSERT INTO transactions (book_id, borrower_id, issue_timestamp, due_date, status, fine_amount, notes)
-      VALUES (?, ?, ?, ?, 'ISSUED', 0.0, ?)
+      INSERT INTO transactions (book_id, borrower_id, issue_timestamp, due_date, status, fine_amount, notes, processed_by)
+      VALUES (?, ?, ?, ?, 'ISSUED', 0.0, ?, ?)
     `);
 
     const txResult = insertTx.run(
@@ -176,8 +177,10 @@ exports.issueBook = (req, res, next) => {
       borrower.id,
       now.toISOString(),
       dueDate.toISOString(),
-      notes.trim()
+      notes.trim(),
+      processedBy
     );
+
 
     const transaction = db.prepare(`
       SELECT t.*, b.title as book_title, b.author as book_author,
@@ -283,20 +286,25 @@ exports.returnBook = (req, res, next) => {
       WHERE book_id = ?
     `).run(transaction.book_id);
 
+    const processedBy = (req.user && req.user.name) ? req.user.name : (req.body.processedBy || transaction.processed_by || 'Desk Librarian');
+
     db.prepare(`
       UPDATE transactions
       SET status = 'RETURNED',
           return_timestamp = ?,
           fine_amount = ?,
-          notes = CASE WHEN ? != '' THEN ? ELSE notes END
+          notes = CASE WHEN ? != '' THEN ? ELSE notes END,
+          processed_by = ?
       WHERE id = ?
     `).run(
       now.toISOString(),
       fineAmount,
       notes.trim(),
       notes.trim(),
+      processedBy,
       transaction.id
     );
+
 
     const completedTx = db.prepare(`
       SELECT t.*, b.title as book_title, b.author as book_author,

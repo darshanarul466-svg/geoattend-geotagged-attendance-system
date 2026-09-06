@@ -1,13 +1,25 @@
 const API_BASE = '/api';
 
+function getToken() {
+  return sessionStorage.getItem('librahub_token') || localStorage.getItem('librahub_token');
+}
+
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
+  const token = getToken();
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
     ...options,
+    headers,
   };
 
   try {
@@ -38,6 +50,30 @@ async function request(endpoint, options = {}) {
 }
 
 export const api = {
+  // Authentication & RBAC
+  login: (identifier, password) => 
+    request('/auth/login', { method: 'POST', body: JSON.stringify({ identifier, password }) }),
+  register: (userData) => 
+    request('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),
+  getMe: () => 
+    request('/auth/me'),
+  getUsers: () => 
+    request('/auth/users'),
+  updateUserRole: (id, role) => 
+    request(`/auth/users/${encodeURIComponent(id)}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
+  getToken,
+  setToken: (token, remember = false) => {
+    if (remember) {
+      localStorage.setItem('librahub_token', token);
+    } else {
+      sessionStorage.setItem('librahub_token', token);
+    }
+  },
+  clearToken: () => {
+    sessionStorage.removeItem('librahub_token');
+    localStorage.removeItem('librahub_token');
+  },
+
   // Dashboard & Analytics
   getDashboardStats: () => request('/analytics/dashboard'),
 

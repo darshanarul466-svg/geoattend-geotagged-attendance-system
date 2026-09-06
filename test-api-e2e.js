@@ -71,7 +71,7 @@ async function runE2ETests() {
         bookId: 'BK00456',
         studentId: 'RA2411003010410',
         name: 'Arjun Nair',
-        email: 'arjun.nair@srmist.edu.in',
+        email: 'arjun.nair@campus.edu',
         loanDays: 14,
         notes: 'Exam preparation'
       })

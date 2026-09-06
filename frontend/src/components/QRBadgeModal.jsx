@@ -8,7 +8,7 @@ export default function QRBadgeModal({ book, isOpen, onClose }) {
   if (!isOpen || !book) return null;
 
   const qrPayload = JSON.stringify({
-    app: 'LibraHub-NSCC',
+    app: 'LibraHub',
     type: 'BOOK',
     bookId: book.book_id,
     isbn: book.book_id,
@@ -34,21 +34,21 @@ export default function QRBadgeModal({ book, isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <div className="bg-white dark:bg-[#16191F] w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 dark:border-[#272D37] overflow-hidden">
         {/* Modal Header */}
-        <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between no-print">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+        <div className="p-5 border-b border-slate-100 dark:border-[#272D37] flex items-center justify-between no-print">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-forest-700/10 text-forest-700 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center justify-center">
               <BookOpen className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm">Library Book QR Label</h3>
-              <p className="text-[11px] text-slate-500">Official catalog barcode sticker</p>
+              <h3 className="font-serif font-bold text-slate-900 dark:text-white text-base">Library Book QR Label</h3>
+              <p className="text-[11px] text-slate-500 font-medium">Official catalog barcode sticker</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1E232B]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -60,7 +60,7 @@ export default function QRBadgeModal({ book, isOpen, onClose }) {
             {/* Institution / Header */}
             <div className="w-full pb-3 mb-4 border-b border-slate-200 flex items-center justify-between text-left">
               <div>
-                <p className="text-[10px] uppercase tracking-widest font-black text-blue-600">SRMIST Central Library</p>
+                <p className="text-[10px] uppercase tracking-widest font-black text-forest-700">Central Campus Library</p>
                 <p className="text-[9px] text-slate-500 font-medium">LibraHub Automated Circulation</p>
               </div>
               <span className="text-[10px] font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-700">
@@ -81,7 +81,7 @@ export default function QRBadgeModal({ book, isOpen, onClose }) {
 
             {/* Book Metadata */}
             <div className="mt-4 w-full text-left">
-              <h4 className="font-bold text-slate-900 text-sm leading-tight line-clamp-2">
+              <h4 className="font-serif font-bold text-slate-900 text-sm leading-tight line-clamp-2">
                 {book.title}
               </h4>
               <p className="text-xs text-slate-600 mt-0.5 font-medium line-clamp-1">
@@ -90,11 +90,11 @@ export default function QRBadgeModal({ book, isOpen, onClose }) {
 
               <div className="mt-3 pt-2.5 border-t border-slate-100 grid grid-cols-2 gap-2 text-[11px]">
                 <div className="flex items-center gap-1.5 text-slate-600">
-                  <Tag className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <Tag className="w-3.5 h-3.5 text-forest-700 shrink-0" />
                   <span className="font-mono font-bold">{book.book_id}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-slate-600 justify-end">
-                  <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <MapPin className="w-3.5 h-3.5 text-terracotta-500 shrink-0" />
                   <span className="font-medium truncate">{book.shelf_location || 'Main Bay'}</span>
                 </div>
               </div>
@@ -109,17 +109,17 @@ export default function QRBadgeModal({ book, isOpen, onClose }) {
         </div>
 
         {/* Modal Actions */}
-        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5 no-print">
+        <div className="p-4 bg-slate-50 dark:bg-[#1E232B]/40 border-t border-slate-100 dark:border-[#272D37] flex items-center justify-end gap-2.5 no-print">
           <button
             onClick={handleDownload}
-            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-[#272D37] text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-[#1E232B] transition-colors flex items-center gap-1.5"
           >
             <Download className="w-3.5 h-3.5" />
             Download PNG
           </button>
           <button
             onClick={handlePrint}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl bg-forest-700 hover:bg-forest-800 text-white text-xs font-bold shadow-md shadow-forest-900/20 transition-all flex items-center gap-1.5"
           >
             <Printer className="w-3.5 h-3.5" />
             Print Sticker Label

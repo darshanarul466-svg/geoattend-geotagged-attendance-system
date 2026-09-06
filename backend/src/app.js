@@ -55,6 +55,22 @@ app.use('/api/*', (req, res) => {
   });
 });
 
+// In production (e.g. Docker or single-server deployment), serve built frontend
+const path = require('node:path');
+const fs = require('node:fs');
+const publicPath = path.join(__dirname, '../public');
+const distPath = path.join(__dirname, '../../frontend/dist');
+const staticPath = fs.existsSync(publicPath) ? publicPath : (fs.existsSync(distPath) ? distPath : null);
+
+if (staticPath) {
+  app.use(express.static(staticPath));
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(path.join(staticPath, 'index.html'));
+    }
+  });
+}
+
 // Error handling middleware
 app.use(errorHandler);
 

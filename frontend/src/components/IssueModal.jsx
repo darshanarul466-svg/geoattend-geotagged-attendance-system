@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { X, BookOpen, User, Calendar, Check, AlertCircle } from 'lucide-react';
+import BookCover from './BookCover';
 import { api } from '../services/api';
 
 export default function IssueModal({ 
@@ -83,41 +84,46 @@ export default function IssueModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-[#16191F] w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 dark:border-[#272D37] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+        <div className="p-5 border-b border-slate-100 dark:border-[#272D37] flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-forest-700/10 text-forest-700 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center justify-center font-bold">
               <BookOpen className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm">Issue Book to Member</h3>
-              <p className="text-[11px] text-slate-500">Record loan and update catalog inventory</p>
+              <h3 className="font-serif font-bold text-slate-900 dark:text-white text-base">Issue Book to Member</h3>
+              <p className="text-[11px] text-slate-500 font-medium">Record loan and update catalog inventory</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1E232B]"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Book Summary Card */}
-        <div className="p-5 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3.5">
-          <img
-            src={book.cover_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80'}
-            alt={book.title}
-            className="w-12 h-16 object-cover rounded-lg shadow-sm border border-slate-200 dark:border-slate-700"
+        <div className="p-5 bg-slate-50 dark:bg-[#1E232B]/40 border-b border-slate-100 dark:border-[#272D37] flex items-center gap-4">
+          <BookCover
+            coverUrl={book.cover_url}
+            title={book.title}
+            author={book.author}
+            category={book.category}
+            bookId={book.book_id}
+            className="w-14 h-20 shrink-0"
           />
           <div className="flex-1 min-w-0 text-xs">
             <div className="flex items-center gap-2">
-              <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{book.book_id}</span>
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded text-[10px]">
+              <span className="font-mono font-bold text-forest-700 dark:text-emerald-400 bg-forest-50 dark:bg-forest-950/50 px-1.5 py-0.5 rounded text-[10px]">
+                {book.book_id}
+              </span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded text-[10px]">
                 {book.available_copies} of {book.total_copies} available
               </span>
             </div>
-            <h4 className="font-bold text-slate-900 dark:text-white mt-0.5 truncate">{book.title}</h4>
+            <h4 className="font-serif font-bold text-slate-900 dark:text-white mt-1 text-sm truncate">{book.title}</h4>
             <p className="text-slate-500 truncate">by {book.author}</p>
           </div>
         </div>
@@ -132,12 +138,12 @@ export default function IssueModal({
           )}
 
           {/* Member Toggle */}
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-[#272D37]">
             <span className="font-bold text-slate-800 dark:text-slate-200">Borrower Information</span>
             <button
               type="button"
               onClick={() => setIsNewMember(!isNewMember)}
-              className="text-blue-600 dark:text-blue-400 text-xs font-semibold hover:underline"
+              className="text-forest-700 dark:text-emerald-400 text-xs font-bold hover:underline"
             >
               {isNewMember ? '← Select Existing Member' : '+ New Member Registration'}
             </button>
@@ -152,7 +158,7 @@ export default function IssueModal({
                 value={selectedStudentId}
                 onChange={(e) => setSelectedStudentId(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] text-slate-900 dark:text-white focus:outline-none focus:border-forest-700"
               >
                 <option value="">-- Choose a Student --</option>
                 {borrowersList.map(m => (
@@ -173,7 +179,7 @@ export default function IssueModal({
                     placeholder="e.g. RA2411003010042"
                     value={newStudentId}
                     onChange={(e) => setNewStudentId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] text-slate-900 dark:text-white focus:outline-none focus:border-forest-700 font-mono"
                   />
                 </div>
                 <div>
@@ -181,24 +187,24 @@ export default function IssueModal({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Rohit Sharma"
+                    placeholder="e.g. Aditi Rao"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] text-slate-900 dark:text-white focus:outline-none focus:border-forest-700"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">SRMIST Email *</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Institutional Email *</label>
                   <input
                     type="email"
                     required
-                    placeholder="e.g. rs9021@srmist.edu.in"
+                    placeholder="e.g. aditi.rao@campus.edu"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] text-slate-900 dark:text-white focus:outline-none focus:border-forest-700"
                   />
                 </div>
                 <div>
@@ -208,7 +214,7 @@ export default function IssueModal({
                     placeholder="+91 98401 23456"
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] text-slate-900 dark:text-white focus:outline-none focus:border-forest-700"
                   />
                 </div>
               </div>
@@ -218,7 +224,7 @@ export default function IssueModal({
                 <select
                   value={newDepartment}
                   onChange={(e) => setNewDepartment(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] text-slate-900 dark:text-white focus:outline-none focus:border-forest-700"
                 >
                   <option value="Computer Science & Engineering">Computer Science & Engineering</option>
                   <option value="Information Technology">Information Technology</option>
@@ -231,7 +237,7 @@ export default function IssueModal({
             </div>
           )}
 
-          {/* Loan Duration */}
+          {/* Loan Configuration */}
           <div className="grid grid-cols-2 gap-3 pt-2">
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -240,7 +246,7 @@ export default function IssueModal({
               <select
                 value={loanDays}
                 onChange={(e) => setLoanDays(parseInt(e.target.value, 10))}
-                className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] text-slate-900 dark:text-white focus:outline-none focus:border-forest-700"
               >
                 <option value={7}>7 Days (Short Loan)</option>
                 <option value={14}>14 Days (Standard)</option>
@@ -251,7 +257,7 @@ export default function IssueModal({
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Return Deadline
               </label>
-              <div className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 font-mono text-blue-600 dark:text-blue-400 font-bold">
+              <div className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] font-mono text-forest-700 dark:text-emerald-400 font-bold">
                 {new Date(Date.now() + loanDays * 24 * 60 * 60 * 1000).toLocaleDateString()}
               </div>
             </div>
@@ -264,23 +270,23 @@ export default function IssueModal({
               placeholder="e.g. Semester coursework reference"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] text-slate-900 dark:text-white focus:outline-none focus:border-forest-700"
             />
           </div>
 
           {/* Submit */}
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-slate-100 dark:border-[#272D37] flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-[#272D37] text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-[#1E232B] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5"
+              className="px-5 py-2 rounded-xl bg-forest-700 hover:bg-forest-800 disabled:opacity-50 text-white font-bold shadow-md shadow-forest-900/20 transition-all flex items-center gap-1.5"
             >
               {submitting ? 'Issuing Book...' : 'Confirm Book Issue'}
             </button>

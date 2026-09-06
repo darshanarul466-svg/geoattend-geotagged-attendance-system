@@ -135,7 +135,7 @@ function seedData(db) {
   ];
 
   const insertBook = db.prepare(`
-    INSERT INTO books (book_id, title, author, category, total_copies, available_copies, shelf_location, description, cover_url)
+    INSERT OR IGNORE INTO books (book_id, title, author, category, total_copies, available_copies, shelf_location, description, cover_url)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
@@ -154,22 +154,23 @@ function seedData(db) {
   }
 
   const borrowers = [
-    { student_id: 'RA2411003010042', name: 'Rohit Sharma', email: 'rs9021@srmist.edu.in', phone: '+91 98401 23456', department: 'Computer Science & Engineering' },
-    { student_id: 'RA2411003010088', name: 'Anjali Menon', email: 'am4432@srmist.edu.in', phone: '+91 97123 45678', department: 'Information Technology' },
-    { student_id: 'RA2411003010156', name: 'Karthik Varma', email: 'kv1102@srmist.edu.in', phone: '+91 94450 67890', department: 'Electronics & Communication' },
-    { student_id: 'RA2411003010214', name: 'Sneha Roy', email: 'sr7741@srmist.edu.in', phone: '+91 99620 12345', department: 'Data Science & AI' },
-    { student_id: 'RA2411003010305', name: 'Vignesh Prasad', email: 'vp3390@srmist.edu.in', phone: '+91 98840 98765', department: 'Mechanical Engineering' },
-    { student_id: 'RA2411003010410', name: 'Arjun Nair', email: 'arjun.nair@srmist.edu.in', phone: '+91 98402 11223', department: 'Computer Science & Engineering' }
+    { student_id: 'RA2411003010042', name: 'Rohit Sharma', email: 'rs9021@campus.edu', phone: '+91 98401 23456', department: 'Computer Science & Engineering' },
+    { student_id: 'RA2411003010088', name: 'Anjali Menon', email: 'am4432@campus.edu', phone: '+91 97123 45678', department: 'Information Technology' },
+    { student_id: 'RA2411003010156', name: 'Karthik Varma', email: 'kv1102@campus.edu', phone: '+91 94450 67890', department: 'Electronics & Communication' },
+    { student_id: 'RA2411003010214', name: 'Sneha Roy', email: 'sr7741@campus.edu', phone: '+91 99620 12345', department: 'Data Science & AI' },
+    { student_id: 'RA2411003010305', name: 'Vignesh Prasad', email: 'vp3390@campus.edu', phone: '+91 98840 98765', department: 'Mechanical Engineering' },
+    { student_id: 'RA2411003010410', name: 'Arjun Nair', email: 'arjun.nair@campus.edu', phone: '+91 98402 11223', department: 'Computer Science & Engineering' }
   ];
 
   const insertBorrower = db.prepare(`
-    INSERT INTO borrowers (student_id, name, email, phone, department)
+    INSERT OR IGNORE INTO borrowers (student_id, name, email, phone, department)
     VALUES (?, ?, ?, ?, ?)
   `);
 
   for (const s of borrowers) {
     insertBorrower.run(s.student_id, s.name, s.email, s.phone, s.department);
   }
+
 
   // Helper date generators (ISO strings)
   const now = new Date();
@@ -236,7 +237,7 @@ function seedData(db) {
       fine_amount: 60.0, // 12 days * ₹5/day
       notes: 'Notice sent to department head'
     },
-    // Active checkout: Deep Learning -> Darshan A (Due in 12 days)
+    // Active checkout: Deep Learning -> Arjun N (Due in 12 days)
     {
       book_id: 'BK02020',
       borrower_id: 6,
@@ -282,34 +283,49 @@ function seedData(db) {
     }
   ];
 
-  const insertTx = db.prepare(`
-    INSERT INTO transactions (book_id, borrower_id, issue_timestamp, due_date, return_timestamp, status, fine_amount, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
+  const txCount = db.prepare('SELECT COUNT(*) as count FROM transactions').get();
+  if (txCount.count === 0) {
+    const insertTx = db.prepare(`
+      INSERT INTO transactions (book_id, borrower_id, issue_timestamp, due_date, return_timestamp, status, fine_amount, notes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
 
-  for (const t of transactions) {
-    insertTx.run(
-      t.book_id,
-      t.borrower_id,
-      t.issue_timestamp,
-      t.due_date,
-      t.return_timestamp,
-      t.status,
-      t.fine_amount,
-      t.notes
-    );
+    for (const t of transactions) {
+      insertTx.run(
+        t.book_id,
+        t.borrower_id,
+        t.issue_timestamp,
+        t.due_date,
+        t.return_timestamp,
+        t.status,
+        t.fine_amount,
+        t.notes
+      );
+    }
   }
+
 
   // Seed default admin and staff users
   const insertUser = db.prepare(`
-    INSERT OR IGNORE INTO users (username, password, name, email, role)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT OR REPLACE INTO users (username, email, password_hash, salt, name, role)
+    VALUES (?, ?, ?, ?, ?, ?)
   `);
 
-  insertUser.run('admin', 'admin123', 'Eleanor Vance', 'admin@librahub.edu', 'admin');
-  insertUser.run('staff', 'staff123', 'Marcus Reed', 'staff@librahub.edu', 'staff');
+  const { hashPassword } = require('./authUtils');
+  const adminCreds = hashPassword('admin123');
+  insertUser.run('admin', 'admin@library.edu', adminCreds.hash, adminCreds.salt, 'Chief Administrator', 'admin');
+
+  const staffCreds = hashPassword('staff123');
+  insertUser.run('staff', 'staff@library.edu', staffCreds.hash, staffCreds.salt, 'Desk Librarian', 'staff');
 
   console.log('[Database] Seeded 12 books, 6 borrowers, 9 transactions, and 2 default user accounts successfully.');
 }
 
+if (require.main === module) {
+  const { getDatabase } = require('../config/database');
+  const db = getDatabase();
+  seedData(db);
+}
+
 module.exports = { seedData };
+

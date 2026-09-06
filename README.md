@@ -1,6 +1,5 @@
 # 📚 LibraHub — Smart Library Book Issue & Return Management System
 
-> **NSCC Full-Stack Web Development Task 1**  
 > An open-source, production-ready library circulation and inventory management system.  
 > Stack: React 19 + Node.js 24 + Express + Native SQLite • Deployable on Vercel
 
@@ -44,7 +43,7 @@ Additionally, LibraHub features **LibraBot**, an interactive AI Assistant powere
   - Add New Book with **1-Click AI Auto-Fill ⭐** (automatically recommends author, category, shelf placement, and synopsis).
   - Safe deletion safeguards (prevents deleting books with active loans).
 - **Student Membership Management**:
-  - Register new university members (Name, Student ID, SRMIST Email, Phone, Department).
+  - Register new university members (Name, Student ID, Institutional Email, Phone, Department).
   - Tracks active loans count per student.
 - **Global Command Palette (`Ctrl + K`)**:
   - Keyboard-accessible search modal for quick navigation and fast lookups.
@@ -106,7 +105,7 @@ Additionally, LibraHub features **LibraBot**, an interactive AI Assistant powere
 ## 📁 Project Structure
 
 ```
-NSCC/
+librahub/
 ├── api/
 │   └── index.js                 # Vercel Serverless Function entry point
 ├── backend/
@@ -175,7 +174,7 @@ NSCC/
 ### Step 1: Clone the Repository
 ```bash
 git clone <your-github-repo-url>
-cd NSCC
+cd librahub
 ```
 
 ### Step 2: Install All Dependencies
@@ -211,6 +210,18 @@ The database will be automatically created and populated with sample books, memb
 
 ---
 
+## 🐳 Docker Deployment (Optional 1-Command Setup)
+
+LibraHub includes a production-ready multi-stage `Dockerfile` and `docker-compose.yml`:
+
+```bash
+# Build and run containerized stack in background
+docker compose up -d --build
+```
+Access the application at `http://localhost:5000`. Persistent database storage is automatically maintained in the `librahub-sqlite-storage` volume.
+
+---
+
 ## 🌐 Vercel Deployment Guide
 
 This project is pre-configured for **1-click zero-friction Vercel deployment**:
@@ -229,7 +240,7 @@ This project is pre-configured for **1-click zero-friction Vercel deployment**:
    - **Build Command**: `npm run build`
    - **Output Directory**: `frontend/dist`
 4. In Vercel Project Settings > **Environment Variables**, optionally add `GEMINI_API_KEY`.
-5. Click **Deploy**! You will receive a live public URL (e.g. `https://librahub-srm.vercel.app`).
+5. Click **Deploy**! You will receive a live public URL (e.g. `https://librahub-demo.vercel.app`).
 
 > **Can you host two projects on a single free Vercel account?**  
 > **Yes!** Vercel's free Hobby plan allows up to **100 separate projects** per account. You can host both Task 1 and Task 2 simultaneously at zero cost.

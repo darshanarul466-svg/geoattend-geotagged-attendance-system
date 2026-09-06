@@ -67,21 +67,21 @@ export default function ReturnModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-[#16191F] w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 dark:border-[#272D37] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+        <div className="p-5 border-b border-slate-100 dark:border-[#272D37] flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-terracotta-500/10 text-terracotta-500 flex items-center justify-center">
               <ArrowDownLeft className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm">Process Book Return</h3>
-              <p className="text-[11px] text-slate-500">Restore inventory & calculate overdue fines</p>
+              <h3 className="font-serif font-bold text-slate-900 dark:text-white text-base">Process Book Return</h3>
+              <p className="text-[11px] text-slate-500 font-medium">Restore inventory & calculate overdue fines</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1E232B]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -95,11 +95,11 @@ export default function ReturnModal({
           )}
 
           {/* Book Info */}
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-            <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-[10px]">
+          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#1E232B]/40 border border-slate-200 dark:border-[#272D37]">
+            <span className="font-mono font-bold text-forest-700 dark:text-emerald-400 bg-forest-50 dark:bg-forest-950/50 px-1.5 py-0.5 rounded text-[10px]">
               {book.book_id}
             </span>
-            <h4 className="font-bold text-slate-900 dark:text-white text-xs mt-0.5 line-clamp-1">{book.title}</h4>
+            <h4 className="font-serif font-bold text-slate-900 dark:text-white text-sm mt-1.5 line-clamp-1">{book.title}</h4>
             <p className="text-slate-500 text-[11px]">by {book.author}</p>
           </div>
 
@@ -112,7 +112,7 @@ export default function ReturnModal({
               <select
                 value={selectedTransactionId}
                 onChange={(e) => setSelectedTransactionId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] text-slate-900 dark:text-white focus:outline-none focus:border-forest-700"
               >
                 {activeLoans.map(loan => (
                   <option key={loan.transaction_id || loan.id} value={loan.transaction_id || loan.id}>
@@ -125,7 +125,7 @@ export default function ReturnModal({
 
           {/* Active Loan Details & Fine Calculation */}
           {activeLoan && (
-            <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1E232B]/60 border border-slate-200 dark:border-[#272D37] space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-500">Borrower:</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200">
@@ -139,8 +139,8 @@ export default function ReturnModal({
                 </span>
               </div>
 
-              {/* Overdue Badge & Fine Calculator (Brownie Subtask ⭐) */}
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
+              {/* Overdue Badge & Fine Calculator */}
+              <div className="pt-2 border-t border-slate-100 dark:border-[#272D37]">
                 {isOverdue ? (
                   <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-300 flex items-start gap-2.5">
                     <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
@@ -155,7 +155,7 @@ export default function ReturnModal({
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Returned on time! No overdue fine applicable.</span>
                   </div>
@@ -174,23 +174,23 @@ export default function ReturnModal({
               value={conditionNotes}
               onChange={(e) => setConditionNotes(e.target.value)}
               placeholder="e.g. Good condition, fine paid"
-              className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] text-slate-900 dark:text-white focus:outline-none focus:border-forest-700"
             />
           </div>
 
           {/* Actions */}
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-slate-100 dark:border-[#272D37] flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-[#272D37] text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-[#1E232B] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting || !activeLoan}
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold shadow-md shadow-indigo-500/20 transition-all flex items-center gap-1.5"
+              className="px-5 py-2 rounded-xl bg-forest-700 hover:bg-forest-800 disabled:opacity-50 text-white font-bold shadow-md shadow-forest-900/20 transition-all flex items-center gap-1.5"
             >
               {submitting ? 'Processing Return...' : (isOverdue ? `Confirm Return (Collect ₹${fineAmount.toFixed(2)})` : 'Confirm Return')}
             </button>

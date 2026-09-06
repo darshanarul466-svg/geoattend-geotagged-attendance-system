@@ -62,9 +62,9 @@ export default function CommandPalette({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-[#16191F] w-full max-w-xl rounded-3xl shadow-2xl border border-slate-200 dark:border-[#272D37] overflow-hidden flex flex-col">
         {/* Search Input Bar */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+        <div className="p-4 border-b border-slate-100 dark:border-[#272D37] flex items-center gap-3">
           <Search className="w-5 h-5 text-slate-400 shrink-0" />
           <input
             type="text"
@@ -74,7 +74,7 @@ export default function CommandPalette({
             onChange={(e) => setQuery(e.target.value)}
             className="flex-1 text-sm bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
           />
-          <kbd className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+          <kbd className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-[#1E232B] text-slate-500 border border-slate-200 dark:border-[#272D37]">
             ESC
           </kbd>
         </div>
@@ -93,12 +93,12 @@ export default function CommandPalette({
                       onClose();
                       onNavigate('books', { search: b.book_id });
                     }}
-                    className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors"
+                    className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-[#1E232B] text-left transition-colors"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <BookOpen className="w-4 h-4 text-blue-500 shrink-0" />
+                      <BookOpen className="w-4 h-4 text-forest-700 dark:text-emerald-400 shrink-0" />
                       <div className="min-w-0">
-                        <p className="font-bold text-slate-800 dark:text-slate-200 truncate">{b.title}</p>
+                        <p className="font-serif font-bold text-slate-900 dark:text-white truncate">{b.title}</p>
                         <p className="text-[11px] text-slate-500 truncate">{b.author} • {b.book_id}</p>
                       </div>
                     </div>
@@ -123,12 +123,12 @@ export default function CommandPalette({
                       onClose();
                       onNavigate('members', { search: m.student_id });
                     }}
-                    className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors"
+                    className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-[#1E232B] text-left transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
-                      <Users className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <Users className="w-4 h-4 text-terracotta-500 shrink-0" />
                       <div>
-                        <p className="font-bold text-slate-800 dark:text-slate-200">{m.name}</p>
+                        <p className="font-serif font-bold text-slate-900 dark:text-white">{m.name}</p>
                         <p className="text-[11px] text-slate-500 font-mono">{m.student_id} • {m.department}</p>
                       </div>
                     </div>
@@ -148,7 +148,7 @@ export default function CommandPalette({
                   <button
                     key={act.id}
                     onClick={act.action}
-                    className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors text-slate-700 dark:text-slate-300 font-medium"
+                    className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-[#1E232B] text-left transition-colors text-slate-700 dark:text-slate-300 font-medium"
                   >
                     <div className="flex items-center gap-2.5">
                       <Icon className="w-4 h-4 text-slate-400" />

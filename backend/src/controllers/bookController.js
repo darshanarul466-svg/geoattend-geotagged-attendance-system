@@ -277,7 +277,7 @@ exports.getBookQR = async (req, res, next) => {
 
     // Structured QR payload
     const qrPayload = JSON.stringify({
-      app: 'LibraHub-NSCC',
+      app: 'LibraHub',
       type: 'BOOK',
       bookId: book.book_id,
       isbn: book.book_id,

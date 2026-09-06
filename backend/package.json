@@ -1,7 +1,7 @@
 {
-  "name": "nscc-library-backend",
+  "name": "librahub-backend",
   "version": "1.0.0",
-  "description": "Express REST API with node:sqlite, QR generation, Excel export, and Gemini AI for NSCC Library Management",
+  "description": "Express REST API with node:sqlite, QR generation, Excel export, and Gemini AI for Central Library Management",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {

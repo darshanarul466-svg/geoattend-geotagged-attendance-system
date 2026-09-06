@@ -14,6 +14,7 @@ import {
   Keyboard
 } from 'lucide-react';
 import { api } from '../services/api';
+import BookCover from './BookCover';
 import { playScanSuccessBeep, playErrorBeep } from '../utils/sound';
 
 export default function QRScannerModal({ 
@@ -133,21 +134,21 @@ export default function QRScannerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-white dark:bg-[#16191F] w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 dark:border-[#272D37] overflow-hidden flex flex-col max-h-[92vh]">
         {/* Modal Header */}
-        <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div className="p-5 border-b border-slate-100 dark:border-[#272D37] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-forest-700/10 text-forest-700 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center justify-center">
               <Camera className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm">QR Code Scanner Desk</h3>
-              <p className="text-[11px] text-slate-500">Scan book QR sticker to Issue or Return</p>
+              <h3 className="font-serif font-bold text-slate-900 dark:text-white text-base">QR Code Scanner Desk</h3>
+              <p className="text-[11px] text-slate-500 font-medium">Scan book QR sticker to Issue or Return</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1E232B]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -166,10 +167,10 @@ export default function QRScannerModal({
                 {scanning && (
                   <div className="absolute inset-0 pointer-events-none">
                     {/* Viewfinder corner guides */}
-                    <div className="absolute top-4 left-4 w-7 h-7 border-t-2 border-l-2 border-blue-500"></div>
-                    <div className="absolute top-4 right-4 w-7 h-7 border-t-2 border-r-2 border-blue-500"></div>
-                    <div className="absolute bottom-4 left-4 w-7 h-7 border-b-2 border-l-2 border-blue-500"></div>
-                    <div className="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-blue-500"></div>
+                    <div className="absolute top-4 left-4 w-7 h-7 border-t-2 border-l-2 border-terracotta-500"></div>
+                    <div className="absolute top-4 right-4 w-7 h-7 border-t-2 border-r-2 border-terracotta-500"></div>
+                    <div className="absolute bottom-4 left-4 w-7 h-7 border-b-2 border-l-2 border-terracotta-500"></div>
+                    <div className="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-terracotta-500"></div>
 
                     {/* Animated laser line */}
                     <div className="animate-laser"></div>
@@ -190,7 +191,7 @@ export default function QRScannerModal({
               {scanning && (
                 <button
                   onClick={handleToggleCamera}
-                  className="mt-3 flex items-center gap-1.5 text-xs text-slate-500 hover:text-blue-500 transition-colors"
+                  className="mt-3 flex items-center gap-1.5 text-xs text-slate-500 hover:text-forest-700 dark:hover:text-emerald-400 transition-colors font-medium"
                 >
                   <SwitchCamera className="w-3.5 h-3.5" />
                   <span>Switch Camera</span>
@@ -198,9 +199,9 @@ export default function QRScannerModal({
               )}
 
               {/* Quick Test Simulator for Evaluators */}
-              <div className="w-full mt-5 p-3.5 bg-blue-50/70 dark:bg-slate-800/60 rounded-2xl border border-blue-100 dark:border-slate-700">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 dark:text-blue-300 mb-2">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+              <div className="w-full mt-5 p-3.5 bg-forest-700/5 dark:bg-[#1E232B] rounded-2xl border border-forest-700/20 dark:border-[#272D37]">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-forest-800 dark:text-emerald-300 mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-terracotta-500" />
                   <span>Quick Test Simulator (Instant 1-Click Scan)</span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2.5">
@@ -214,9 +215,9 @@ export default function QRScannerModal({
                         playScanSuccessBeep();
                         handleVerifyCode(b.book_id);
                       }}
-                      className="text-left px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 text-[11px] font-medium transition-all truncate"
+                      className="text-left px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#16191F] border border-slate-200 dark:border-[#272D37] hover:border-forest-700 dark:hover:border-forest-700 text-[11px] font-medium transition-all truncate shadow-2xs"
                     >
-                      <span className="font-mono font-bold text-blue-600 dark:text-blue-400 mr-1.5">{b.book_id}</span>
+                      <span className="font-mono font-bold text-forest-700 dark:text-emerald-400 mr-1.5">{b.book_id}</span>
                       <span className="text-slate-700 dark:text-slate-300">{b.title}</span>
                     </button>
                   ))}
@@ -233,13 +234,13 @@ export default function QRScannerModal({
                     value={manualCode}
                     onChange={(e) => setManualCode(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleVerifyCode(manualCode)}
-                    className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-100 dark:bg-[#1E232B] border border-slate-200 dark:border-[#272D37] text-slate-900 dark:text-white focus:outline-none focus:border-forest-700"
                   />
                 </div>
                 <button
                   onClick={() => handleVerifyCode(manualCode)}
                   disabled={!manualCode.trim() || verifying}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-sm transition-all"
+                  className="px-4 py-2 bg-forest-700 hover:bg-forest-800 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs transition-all"
                 >
                   {verifying ? 'Verifying...' : 'Verify'}
                 </button>
@@ -251,7 +252,7 @@ export default function QRScannerModal({
               <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 flex items-center gap-3">
                 <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <div>
-                  <h4 className="font-bold text-xs text-emerald-900 dark:text-emerald-300">Book Verified Successfully</h4>
+                  <h4 className="font-serif font-bold text-xs text-emerald-900 dark:text-emerald-300">Book Verified Successfully</h4>
                   <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
                     {scanResult.hasAvailableCopies ? 'Copies available for checkout.' : 'All copies are currently checked out.'}
                   </p>
@@ -259,17 +260,20 @@ export default function QRScannerModal({
               </div>
 
               {/* Book Details */}
-              <div className="mt-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex gap-4">
-                <img
-                  src={scanResult.book.cover_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80'}
-                  alt={scanResult.book.title}
-                  className="w-16 h-22 object-cover rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 shrink-0"
+              <div className="mt-4 p-4 rounded-2xl bg-slate-50 dark:bg-[#1E232B]/40 border border-slate-200 dark:border-[#272D37] flex gap-4">
+                <BookCover
+                  coverUrl={scanResult.book.cover_url}
+                  title={scanResult.book.title}
+                  author={scanResult.book.author}
+                  category={scanResult.book.category}
+                  bookId={scanResult.book.book_id}
+                  className="w-16 h-22 shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <span className="text-[10px] font-mono font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
+                  <span className="text-[10px] font-mono font-bold bg-forest-50 dark:bg-forest-950/60 text-forest-700 dark:text-emerald-400 px-2 py-0.5 rounded">
                     {scanResult.book.book_id}
                   </span>
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white mt-1 leading-snug line-clamp-2">
+                  <h4 className="font-serif font-bold text-sm text-slate-900 dark:text-white mt-1 leading-snug line-clamp-2">
                     {scanResult.book.title}
                   </h4>
                   <p className="text-xs text-slate-500 mt-0.5">by {scanResult.book.author}</p>
@@ -296,7 +300,7 @@ export default function QRScannerModal({
                     {scanResult.activeCheckouts.map(loan => (
                       <div
                         key={loan.transaction_id}
-                        className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between"
+                        className="p-3 rounded-xl bg-white dark:bg-[#16191F] border border-slate-200 dark:border-[#272D37] flex items-center justify-between"
                       >
                         <div className="text-xs">
                           <p className="font-bold text-slate-800 dark:text-slate-200">{loan.borrower_name}</p>
@@ -312,7 +316,7 @@ export default function QRScannerModal({
                             onClose();
                             onSelectAction('RETURN', { book: scanResult.book, loan });
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all"
+                          className="px-3.5 py-1.5 rounded-lg bg-terracotta-500 hover:bg-terracotta-600 text-white text-xs font-bold shadow-xs transition-all"
                         >
                           Return Copy
                         </button>
@@ -323,10 +327,10 @@ export default function QRScannerModal({
               )}
 
               {/* Action Buttons */}
-              <div className="mt-6 flex items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="mt-6 flex items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-[#272D37]">
                 <button
                   onClick={handleResetScan}
-                  className="px-3 py-2 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 font-semibold"
+                  className="px-3 py-2 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 font-bold"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   Scan Another Book
@@ -339,7 +343,7 @@ export default function QRScannerModal({
                         onClose();
                         onSelectAction('ISSUE', { book: scanResult.book });
                       }}
-                      className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5"
+                      className="px-5 py-2 rounded-xl bg-forest-700 hover:bg-forest-800 text-white text-xs font-bold shadow-md shadow-forest-900/20 transition-all flex items-center gap-1.5"
                     >
                       <span>Proceed to Issue</span>
                       <ArrowRight className="w-3.5 h-3.5" />

@@ -13,25 +13,22 @@ import ReturnModal from './components/ReturnModal';
 import AddBookModal from './components/AddBookModal';
 import AIAssistantDrawer from './components/AIAssistantDrawer';
 import CommandPalette from './components/CommandPalette';
+import AdminStaffModal from './components/AdminStaffModal';
 import { api } from './services/api';
-import { CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, X, BookMarked } from 'lucide-react';
 
 export default function App() {
-  // Authentication State
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem('librahub_current_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch (e) {
-      return null;
-    }
-  });
+  // Authentication & Session State
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [isAdminStaffModalOpen, setIsAdminStaffModalOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('librahub_theme') === 'dark' || 
       window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
+
 
   // Data states
   const [stats, setStats] = useState(null);
@@ -111,6 +108,30 @@ export default function App() {
     }
   };
 
+  // Verify token session on initial mount
+  useEffect(() => {
+    const token = api.getToken();
+    if (!token) {
+      setIsAuthChecking(false);
+      return;
+    }
+
+    api.getMe()
+      .then((res) => {
+        if (res.success && res.user) {
+          setCurrentUser(res.user);
+        } else {
+          api.clearToken();
+        }
+      })
+      .catch(() => {
+        api.clearToken();
+      })
+      .finally(() => {
+        setIsAuthChecking(false);
+      });
+  }, []);
+
   useEffect(() => {
     if (currentUser) {
       loadData();
@@ -119,14 +140,14 @@ export default function App() {
 
   const handleLoginSuccess = (user) => {
     setCurrentUser(user);
-    localStorage.setItem('librahub_current_user', JSON.stringify(user));
-    showToast(`Signed in as ${user.name} (${user.role.toUpperCase()})`);
+    showToast(`Welcome, ${user.name} (${user.role.toUpperCase()})`);
   };
 
   const handleLogout = () => {
+    api.clearToken();
     localStorage.removeItem('librahub_current_user');
     setCurrentUser(null);
-    showToast('Signed out successfully.');
+    showToast('Signed out of circulation terminal.');
   };
 
   const showToast = (message, type = 'success') => {
@@ -149,20 +170,37 @@ export default function App() {
     setActiveTab(tabId);
   };
 
-  // If not logged in, render the Login Page!
+  // Session verification loader
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#F6F4F0] dark:bg-[#0F1115] select-none">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-[#193B2D] text-white flex items-center justify-center shadow-lg animate-pulse">
+            <BookMarked className="w-6 h-6" />
+          </div>
+          <p className="text-xs font-bold text-[#71717A] dark:text-[#9CA3AF] tracking-widest uppercase font-mono">
+            Verifying Terminal Session...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // If unauthenticated, gatekeep strictly with Login Page
   if (!currentUser) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 
+
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 font-sans selection:bg-blue-500 selection:text-white">
+    <div className="min-h-screen flex bg-[#F6F4F0] dark:bg-[#0F1115] text-[#1A1A1A] dark:text-[#EDE8DF] font-sans selection:bg-[#193B2D] selection:text-white transition-colors duration-200">
       {/* Toast Notification */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50 animate-in slide-in-from-bottom-5 duration-200">
-          <div className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xl border border-slate-700/50 text-xs font-semibold">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 dark:text-emerald-600 shrink-0" />
+          <div className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-[#193B2D] text-white shadow-2xl border border-emerald-800/50 text-xs font-semibold">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{toast.message}</span>
-            <button onClick={() => setToast(null)} className="ml-2 text-slate-400 hover:text-white">
+            <button onClick={() => setToast(null)} className="ml-2 text-white/70 hover:text-white">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -176,6 +214,8 @@ export default function App() {
         onOpenScanner={() => setIsScannerOpen(true)}
         overdueCount={stats ? stats.overdueCount : 0}
         currentUser={currentUser}
+        onLogout={handleLogout}
+        onOpenAI={() => setIsAIOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -189,7 +229,9 @@ export default function App() {
           onOpenAI={() => setIsAIOpen(true)}
           currentUser={currentUser}
           onLogout={handleLogout}
+          onOpenStaffModal={() => setIsAdminStaffModalOpen(true)}
         />
+
 
         {/* Dynamic Page Views */}
         <main className="flex-1 overflow-y-auto">
@@ -237,7 +279,7 @@ export default function App() {
             />
           )}
 
-          {(activeTab === 'transactions' || activeTab === 'reports') && (
+          {activeTab === 'transactions' && (
             <TransactionsView
               transactions={transactions}
               onRefresh={loadData}
@@ -321,6 +363,13 @@ export default function App() {
         onOpenAddBook={() => setIsAddBookOpen(true)}
         onOpenAI={() => setIsAIOpen(true)}
       />
+
+      <AdminStaffModal
+        isOpen={isAdminStaffModalOpen}
+        onClose={() => setIsAdminStaffModalOpen(false)}
+        currentUserId={currentUser?.id}
+      />
     </div>
   );
 }
+
