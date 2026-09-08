@@ -1,146 +1,214 @@
+/**
+ * Automated End-to-End Test Suite for CheckIn / GeoAttend
+ * Validates:
+ * 1. Health check
+ * 2. User Authentication & 1-Click Demo Login
+ * 3. Event Creation with Geofence Radius
+ * 4. Geofence Distance Verification (Inside Geofence -> Success 201)
+ * 5. Geofence Breach Detection (Outside Geofence -> Forbidden 403)
+ * 6. Duplicate Attendance Prevention (Conflict 409)
+ * 7. Live Real-Time Attendance Statistics (Brownie Task)
+ * 8. CSV & Excel Export Functionality
+ * 9. AI Assistant & Description Generator
+ */
+
+const http = require('node:http');
 const app = require('./backend/src/app');
-const http = require('http');
 
-async function runE2ETests() {
-  console.log('--- STARTING END-TO-END INTEGRATION TEST SUITE ---');
+let server;
+const PORT = 5589;
+const BASE_URL = `http://localhost:${PORT}/api`;
 
-  const server = http.createServer(app);
-  await new Promise(resolve => server.listen(5099, resolve));
-  const baseUrl = 'http://localhost:5099';
+function request(method, path, body = null, headers = {}) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(`${BASE_URL}${path}`);
+    const reqHeaders = { 'Content-Type': 'application/json', ...headers };
+
+    const req = http.request(
+      url,
+      { method, headers: reqHeaders },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk) => (data += chunk));
+        res.on('end', () => {
+          let json = null;
+          try {
+            json = JSON.parse(data);
+          } catch {
+            json = data;
+          }
+          resolve({ status: res.statusCode, headers: res.headers, body: json });
+        });
+      }
+    );
+
+    req.on('error', reject);
+
+    if (body) {
+      req.write(typeof body === 'string' ? body : JSON.stringify(body));
+    }
+    req.end();
+  });
+}
+
+let organizerToken = '';
+let attendeeToken = '';
+let testEventId = '';
+
+async function runTests() {
+  console.log('================================================================');
+  console.log('🧪 Running CheckIn / GeoAttend Automated Verification Test Suite');
+  console.log('================================================================\n');
+
+  let passed = 0;
+  let failed = 0;
+
+  function assert(condition, name) {
+    if (condition) {
+      console.log(`  ✅ PASS: ${name}`);
+      passed++;
+    } else {
+      console.error(`  ❌ FAIL: ${name}`);
+      failed++;
+    }
+  }
 
   try {
-    // 1. Health check
-    console.log('[1/9] Testing /api/health...');
-    const healthRes = await fetch(`${baseUrl}/api/health`);
-    const health = await healthRes.json();
-    if (health.status !== 'online') throw new Error('Health check failed');
-    console.log('  ✓ System health is online');
+    // 1. Health Check
+    console.log('1. Health Check API');
+    const health = await request('GET', '/health');
+    assert(health.status === 200 && health.body.status === 'online', 'Health endpoint reports online');
 
-    // 2. Authentication & Role Permissions
-    console.log('[2/9] Testing /api/auth/login with Admin & Staff roles...');
-    const adminLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier: 'admin', password: 'admin123' })
+    // 2. Authentication
+    console.log('\n2. Authentication & Demo Logins');
+    const orgLogin = await request('POST', '/auth/demo-login', { role: 'organizer' });
+    assert(orgLogin.status === 200 && orgLogin.body.token, 'Organizer 1-click login generates JWT token');
+    organizerToken = orgLogin.body.token;
+
+    const attLogin = await request('POST', '/auth/demo-login', { role: 'attendee' });
+    assert(attLogin.status === 200 && attLogin.body.token, 'Attendee 1-click login generates JWT token');
+    attendeeToken = attLogin.body.token;
+
+    // 3. Event Creation with Geofence
+    console.log('\n3. Event Management & Geofence Configuration');
+    const newEventPayload = {
+      title: 'Automated Test Hackathon 2026',
+      venue: 'Engineering Test Hall',
+      lat: 12.9716,
+      lng: 77.5946,
+      geofenceRadius: 100, // 100m radius
+      capacity: 200,
+      category: 'Hackathon'
+    };
+
+    const createRes = await request('POST', '/events', newEventPayload, {
+      Authorization: `Bearer ${organizerToken}`
     });
-    const adminData = await adminLoginRes.json();
-    if (!adminData.success || !adminData.user.isAdmin) throw new Error('Admin login failed');
-    console.log(`  ✓ Logged in as Admin: "${adminData.user.name}" (Role: ${adminData.user.role})`);
+    assert(createRes.status === 201 && createRes.body.event?.id, 'Organizer successfully creates geofenced event');
+    testEventId = createRes.body.event.id;
+    const qrSecret = createRes.body.event.qrSecret;
 
-    const staffLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier: 'staff', password: 'staff123' })
+    // 4. Check-in INSIDE Geofence (Allowed)
+    console.log('\n4. Geolocation Verification: Inside Geofence (Success Case)');
+    // Positioned 12m from 12.9716, 77.5946 (within 100m geofence)
+    const insideCoords = { lat: 12.97168, lng: 77.59465 };
+    const insideRes = await request('POST', '/attendance/verify-and-mark', {
+      eventId: testEventId,
+      qrData: qrSecret,
+      userLat: insideCoords.lat,
+      userLng: insideCoords.lng,
+      accuracy: 5
+    }, {
+      Authorization: `Bearer ${attendeeToken}`
     });
-    const staffData = await staffLoginRes.json();
-    if (!staffData.success || staffData.user.role !== 'staff') throw new Error('Staff login failed');
-    console.log(`  ✓ Logged in as Staff: "${staffData.user.name}" (Role: ${staffData.user.role})`);
 
-    // 3. Dashboard Analytics
-    console.log('[3/9] Testing /api/analytics/dashboard...');
-    const dashRes = await fetch(`${baseUrl}/api/analytics/dashboard`);
-    const dash = await dashRes.json();
-    if (!dash.success || !dash.stats) throw new Error('Dashboard stats failed');
-    console.log(`  ✓ Total books: ${dash.stats.totalBooks}, Active Overdue: ${dash.stats.overdueCount}`);
+    assert(
+      insideRes.status === 201 && insideRes.body.attendance?.status === 'VERIFIED',
+      `Attendee inside geofence verified successfully (distance: ${insideRes.body?.attendance?.distanceMeters}m)`
+    );
 
-    // 4. Books Catalog
-    console.log('[4/9] Testing /api/books catalog...');
-    const booksRes = await fetch(`${baseUrl}/api/books?status=all`);
-    const booksData = await booksRes.json();
-    if (!booksData.success || booksData.books.length === 0) throw new Error('Books catalog empty');
-    console.log(`  ✓ Retrieved ${booksData.books.length} books across ${booksData.categories.length} categories`);
-
-    // 5. QR Verification
-    console.log('[5/9] Testing /api/transactions/verify-qr with JSON QR payload...');
-    const verifyRes = await fetch(`${baseUrl}/api/transactions/verify-qr`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ qrCode: JSON.stringify({ bookId: 'BK00456', title: 'Design Patterns' }) })
+    // 5. Duplicate Check-in Prevention
+    console.log('\n5. Duplicate Attendance Prevention');
+    const dupRes = await request('POST', '/attendance/verify-and-mark', {
+      eventId: testEventId,
+      qrData: qrSecret,
+      userLat: insideCoords.lat,
+      userLng: insideCoords.lng
+    }, {
+      Authorization: `Bearer ${attendeeToken}`
     });
-    const verifyData = await verifyRes.json();
-    if (!verifyData.success || verifyData.book.book_id !== 'BK00456') throw new Error('QR verify failed');
-    console.log(`  ✓ QR code verified: "${verifyData.book.title}" (Available: ${verifyData.hasAvailableCopies})`);
+    assert(
+      dupRes.status === 409 && dupRes.body.code === 'DUPLICATE_ATTENDANCE',
+      'Duplicate attendance submission properly rejected with 409 Conflict'
+    );
 
-    // 6. Issue Book Transaction & Concurrency Check
-    console.log('[6/9] Testing /api/transactions/issue (Issue book to student)...');
-    const initialAvail = verifyData.book.available_copies;
-    const issueRes = await fetch(`${baseUrl}/api/transactions/issue`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        bookId: 'BK00456',
-        studentId: 'RA2411003010410',
-        name: 'Arjun Nair',
-        email: 'arjun.nair@campus.edu',
-        loanDays: 14,
-        notes: 'Exam preparation'
-      })
+    // 6. Check-in OUTSIDE Geofence (Breach Detected)
+    console.log('\n6. Geolocation Verification: Outside Geofence (Rejection Case)');
+    // Positioned 800m away
+    const outsideCoords = { lat: 12.9780, lng: 77.6010 };
+    const outsideRes = await request('POST', '/attendance/verify-and-mark', {
+      eventId: testEventId,
+      qrData: qrSecret,
+      userLat: outsideCoords.lat,
+      userLng: outsideCoords.lng,
+      userId: 'usr_outside_tester',
+      userEmail: 'outside.tester@example.com'
     });
-    const issueData = await issueRes.json();
-    if (!issueData.success) throw new Error(`Issue failed: ${issueData.message}`);
-    if (issueData.book.available_copies !== initialAvail - 1) throw new Error('Stock not decremented properly');
-    console.log(`  ✓ Book issued successfully! New available copies: ${issueData.book.available_copies}`);
 
-    // 7. Test Double-Issue Guard
-    console.log('[7/9] Testing Double-Issue Guard (Attempt duplicate active checkout)...');
-    const dupRes = await fetch(`${baseUrl}/api/transactions/issue`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        bookId: 'BK00456',
-        studentId: 'RA2411003010410'
-      })
+    assert(
+      outsideRes.status === 403 && outsideRes.body.code === 'OUT_OF_BOUNDS',
+      `Out-of-bounds check-in rejected with 403 Forbidden (${outsideRes.body?.details?.distanceMeters}m away from 100m radius)`
+    );
+
+    // 7. Live Real-Time Attendance Statistics (Brownie Task)
+    console.log('\n7. Real-Time Organizer Dashboard Telemetry (Brownie Task)');
+    const liveStats = await request('GET', `/attendance/live/${testEventId}`);
+    assert(
+      liveStats.status === 200 && liveStats.body.stats?.verifiedCount >= 1,
+      `Real-time dashboard aggregates verified count (${liveStats.body?.stats?.verifiedCount} attendees) & live feed`
+    );
+
+    // 8. CSV and Excel Exports
+    console.log('\n8. Data Export (CSV & Excel .xlsx)');
+    const csvRes = await request('GET', `/export/csv/${testEventId}`);
+    assert(
+      csvRes.status === 200 && typeof csvRes.body === 'string' && csvRes.body.includes('Full Name'),
+      'CSV export contains correct formatted headers and attendee rows'
+    );
+
+    const excelRes = await request('GET', `/export/excel/${testEventId}`);
+    assert(
+      excelRes.status === 200 && excelRes.headers['content-type'].includes('spreadsheetml'),
+      'Excel .xlsx download stream generated successfully'
+    );
+
+    // 9. AI Assistant & Description Generator
+    console.log('\n9. AI Assistant & Natural Language Q&A (Bonus Task)');
+    const aiChat = await request('POST', '/ai/chat', {
+      prompt: 'What are the upcoming events scheduled on campus?'
     });
-    if (dupRes.status !== 400) throw new Error('Duplicate issue was not blocked!');
-    const dupErr = await dupRes.json();
-    console.log(`  ✓ Guard correctly rejected duplicate checkout: "${dupErr.message}"`);
+    assert(aiChat.status === 200 && aiChat.body.answer, 'AI Assistant answers natural language query');
 
-    // 8. Return Book Transaction & Stock Restoration
-    console.log('[8/9] Testing /api/transactions/return (Process return)...');
-    const returnRes = await fetch(`${baseUrl}/api/transactions/return`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        bookId: 'BK00456',
-        studentId: 'RA2411003010410',
-        notes: 'Returned on time in good condition'
-      })
+    const aiDesc = await request('POST', '/ai/generate-description', {
+      title: 'Cloud & AI Bootcamp',
+      venue: 'Tech Auditorium'
     });
-    const returnData = await returnRes.json();
-    if (!returnData.success) throw new Error(`Return failed: ${returnData.message}`);
-    if (returnData.book.available_copies !== initialAvail) throw new Error('Stock not restored');
-    console.log(`  ✓ Return processed! Stock restored to: ${returnData.book.available_copies}`);
+    assert(aiDesc.status === 200 && aiDesc.body.description, 'AI generates engaging event description');
 
-    // 9. AI Assistant missing key warning & Data Exports
-    console.log('[9/9] Testing AI Assistant without key (should warn key required) & CSV/Excel Exports...');
-    const aiRes = await fetch(`${baseUrl}/api/ai/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: 'hi' })
-    });
-    const aiData = await aiRes.json();
-    if (!aiData.apiKeyRequired) throw new Error('AI should notify that API key is required when missing');
-    console.log(`  ✓ AI correctly notified: "${aiData.reply.split('\n')[0]}"`);
-
-    const csvRes = await fetch(`${baseUrl}/api/export/csv`);
-    const csvText = await csvRes.text();
-    if (!csvText.includes('Book Title') || !csvText.includes('Days Overdue')) throw new Error('CSV missing columns');
-    console.log(`  ✓ CSV export generated (${csvText.length} bytes, verified headers)`);
-
-    const excelRes = await fetch(`${baseUrl}/api/export/excel`);
-    const excelBuffer = await excelRes.arrayBuffer();
-    if (excelBuffer.byteLength < 5000) throw new Error('Excel report empty');
-    console.log(`  ✓ Excel report generated (${excelBuffer.byteLength} bytes)`);
-
-    console.log('\n=============================================================');
-    console.log('🎉 ALL 9/9 INTEGRATION & BUSINESS LOGIC TESTS PASSED 100%! 🎉');
-    console.log('=============================================================');
+  } catch (err) {
+    console.error('Fatal test execution error:', err);
+    failed++;
   } finally {
-    server.close();
+    console.log('\n================================================================');
+    console.log(`📊 Test Results: ${passed} Passed, ${failed} Failed`);
+    console.log('================================================================\n');
+
+    server.close(() => {
+      console.log('Server closed cleanly.');
+    });
   }
 }
 
-runE2ETests().catch(err => {
-  console.error('\n❌ TEST SUITE FAILED:', err);
-  process.exit(1);
+server = app.listen(PORT, () => {
+  runTests();
 });

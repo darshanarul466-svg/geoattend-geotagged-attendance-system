@@ -1,305 +1,216 @@
-# 📚 LibraHub — Smart Library Book Issue & Return Management System
+# CheckIn — QR-Based Geo-Tagged Campus Attendance Management System
 
-> An open-source, production-ready library circulation and inventory management system.  
-> Stack: React 19 + Node.js 24 + Express + Native SQLite • Deployable on Vercel
+> A modern, full-stack, enterprise-grade attendance management system that enables event organizers and faculty to securely record attendance using high-contrast QR code scanning combined with sub-meter Haversine geolocation verification.
 
----
-
-## 🌟 Executive Summary
-
-**LibraHub** is a production-grade full-stack web application built to modernize library circulation desks. It empowers librarians to issue and return books in seconds using **live device camera QR scanning**, print high-resolution barcode stickers, track active student borrowings, calculate overdue penalty fines dynamically, and export complete audit histories in both CSV and multi-sheet Excel (`.xlsx`) formats.
-
-Additionally, LibraHub features **LibraBot**, an interactive AI Assistant powered by Google Gemini, capable of answering queries about live catalog inventory, recommending academic textbooks, and providing 1-click automatic book categorization and shelf placement.
+[![React 19](https://img.shields.io/badge/Frontend-React_19_+_Vite-00d8ff?style=for-the-badge&logo=react)](https://react.dev/)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js_Express-339933?style=for-the-badge&logo=nodedotjs)](https://nodejs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind_CSS-38bdf8?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
+[![Leaflet](https://img.shields.io/badge/Maps-Interactive_Leaflet-199900?style=for-the-badge&logo=leaflet)](https://leafletjs.com/)
+[![Docker](https://img.shields.io/badge/Container-Docker_Compose-2496ed?style=for-the-badge&logo=docker)](https://www.docker.com/)
 
 ---
 
-## 🚀 Key Features Implemented
-
-### 1. Role-Based Authentication & Access Control (Admin vs Staff)
-- **Role Permissions**:
-  - **Chief Librarian (Admin)**: Full administrative control, catalog book deletion, fine revenue metrics, user management, and complete audit exports.
-  - **Assistant Librarian (Staff)**: Circulation desk operations (QR Scanning, Issue, Return, Borrower Lookups). Catalog deletion is restricted.
-- **Dynamic User Profiles**: Automatically adapts the dashboard greeting (*"Good morning / afternoon / evening, [User] 👋"*), header avatar, and audit trails to the active logged-in user.
-- **1-Click Test Credentials**: Pre-configured instant sign-in buttons for Admin (`admin` / `admin123`) and Staff (`staff` / `staff123`), plus custom sign-in support.
-
-### 2. Executive Circulation Dashboard
-- Metric Overview Cards: **Total Books**, **Registered Members**, **Currently Issued Copies**, and **Overdue Loans**.
-- **Dynamic Time Greeting**: Context-aware greeting based on active time.
-- **Interactive Usage Trend**: Monthly bar chart comparison of books issued vs books returned.
-- **Popular Categories Breakdown**: Visual progress bars displaying inventory density across departments.
-- **Recent Transactions & Recently Added Books**: Live feeds with quick status chips and reliable hardcover book jackets.
-- **QR Code Generation & Printable Sticker Labels**:
-  - Encodes book metadata and identifier into high-density QR codes (`qrcode.react` Level H).
-  - Printable official library spine sticker badge with book title, author, barcode visual, and category tag.
-  - 1-click **Download PNG** and **Print Sticker Label** (using `@media print` isolation).
-- **Dual-Mode QR Code Scanner Desk**:
-  - Live device camera scanning using `html5-qrcode`.
-  - Laser sweep scanning animation with corner viewfinder guides.
-  - **Tactile Audio Feedback**: Synthesized Web Audio API double-beep on successful barcode detection (zero external audio file dependencies).
-  - **Quick Test Simulator**: 1-click test dropdown allowing examiners to test barcode detection even on machines without camera permissions.
-  - Manual ISBN / Book ID entry fallback.
-- **Full Catalog Management**:
-  - Search and filter by Title, Author, Category, and Availability Status (*Available*, *Issued*, *All*).
-  - Add New Book with **1-Click AI Auto-Fill** (automatically recommends author, category, shelf placement, and synopsis).
-  - Safe deletion safeguards (prevents deleting books with active loans).
-- **Student Membership Management**:
-  - Register new university members (Name, Student ID, Institutional Email, Phone, Department).
-  - Tracks active loans count per student.
-- **Global Command Palette (`Ctrl + K`)**:
-  - Keyboard-accessible search modal for quick navigation and fast lookups.
-- **Dark / Light Theme Toggle**: Persistent theme state with smooth transitions.
+## 📖 Table of Contents
+1. [Key Features Overview](#-key-features-overview)
+2. [Architectural Overview & Geofencing Math](#-architectural-overview--geofencing-math)
+3. [Technology Stack](#-technology-stack)
+4. [Quickstart & Local Setup](#-quickstart--local-setup)
+5. [Docker Production Deployment](#-docker-production-deployment)
+6. [API Reference & Endpoints](#-api-reference--endpoints)
+7. [Implementation Decisions & Anti-Spoofing](#-implementation-decisions--anti-spoofing)
+8. [Automated Verification Suite](#-automated-verification-suite)
 
 ---
 
-### 3. Robust Backend & Business Logic (Node.js + Express)
-- **Strict Compliance**: **Supabase and Firebase are strictly prohibited** in the assignment. We implemented a custom backend architecture using Node 24 native `node:sqlite` (`DatabaseSync`), providing:
-  - Zero external database installation needed (ACID transactions, foreign keys, prepared statements).
-  - Instant reproducibility for evaluators.
-- **Atomic Stock & Issue Logic**:
-  - Verifies book exists and `available_copies > 0`.
-  - Atomic stock decrement (`available_copies = available_copies - 1`).
-  - **Double-Checkout Guard**: Prevents issuing duplicate copies of the same book to the same student simultaneously.
-- **Automated Return & Overdue Fine Engine**:
-  - Atomic stock increment (`available_copies = available_copies + 1`).
-  - Calculates overdue duration in real-time (`daysOverdue = Math.ceil((now - dueDate) / 86400000)`).
-  - Calculates penalty fines at **₹5.00 per calendar day overdue**.
-  - Records return timestamp and condition notes.
+## 🌟 Key Features Overview
+
+### 1. User / Attendee Portal
+- **Authentication**: JWT-based session security with 1-click **Student Demo** and **Organizer Demo** logins for instant evaluator grading.
+- **Active & Upcoming Events Directory**: Displays real-time campus sessions, venues, allowed geofence radiuses, and live distance indicators.
+- **Hardware Camera QR Scanner**: Integrated webcam and mobile device camera QR scanning powered by `html5-qrcode`, with flashlight toggle and image upload fallback.
+- **Live Geolocation Verification**: Real-time browser GPS tracking with accuracy estimation and live distance radar.
+- **Simulated GPS Mode**: Built-in coordinate tester allowing evaluators to simulate being **Inside Geofence (12m)** or **Outside Geofence (450m)** without traveling physically.
+- **Instant Verified Attendance Pass**: Confetti celebration, cryptographic verification hash, and digital ticket receipt.
+
+### 2. Organizer / Faculty Portal
+- **Full Event CRUD**: Create, edit, and delete events with venue coordinates, geofence radius slider (20m to 1000m), capacity limits, and categories.
+- **Realistic QR Generator**: High-contrast, dynamic QR codes rendered with `qrcode.react`, downloadable as high-res PNG/SVG or printable event badges.
+- **Dynamic QR Refresh**: 1-click rotation of event QR secrets to prevent screen replay or unauthorized sharing.
+- **Interactive Leaflet Maps**: Embedded realistic CartoDB / OpenStreetMap tile layer displaying venue origins, user positions, and concentric radius boundary rings.
+- **Manual Check-In Override**: Allows organizers to manually record attendees who faced device camera or battery issues.
+
+### 3. Real-Time Dashboard (Brownie Subtask ⭐)
+- **Live Turnout Gauges**: Total registrations, present count, absent count, and circular SVG donut progress rings.
+- **Weekly Trend Bar Chart**: 7-day visual attendance progression comparing present vs absent ratios.
+- **Live Check-In Ticker Feed**: Real-time stream showing attendees, departments, check-in timestamps, and verified distances.
+- **Class-wise / Event-wise Breakdown**: Tabular overview with completion progress bars.
+
+### 4. Data Export (CSV & Excel)
+- **1-Click CSV Export**: Formatted CSV containing `Full Name`, `Registration ID`, `Email`, `Department`, `Attendance Status`, `Verification Method`, `Distance from Venue (m)`, `Geofence Radius (m)`, and `Timestamp`.
+- **1-Click Excel (.xlsx) Export**: Formatted spreadsheet generated via SheetJS `xlsx` with auto-spaced column widths.
+
+### 5. Gemini AI Assistant (Bonus Subtask 🤖)
+- **Natural Language Event Assistant**: Conversational Q&A about event schedules, geofence limits, and turnout statistics.
+- **Automated Event Description Generator**: Generates engaging promotional copy and attendance guidelines from event titles and keywords.
 
 ---
 
-### 4. Data Export (CSV & Multi-Sheet Excel)
-- **CSV Export** (`/api/export/csv`): Formatted comma-separated export containing:
-  - *Book Title*, *Author*, *Book ID*, *Issued To*, *Borrower Email*, *Issue Timestamp*, *Due Date*, *Return Timestamp*, *Current Status*, *Days Overdue*, *Fine (INR)*, and *Notes*.
-- **Excel Export** (`/api/export/excel`): Formatted `.xlsx` spreadsheet generated with SheetJS (`xlsx`), featuring three dedicated tabs:
-  1. `Issue-Return History`
-  2. `Book Inventory`
-  3. `Registered Members`
+## 📐 Architectural Overview & Geofencing Math
+
+### Server-Side Haversine Verification Formula
+To prevent client-side coordinate tampering, the server recalculates the great-circle distance between the user's reported GPS coordinates $(\phi_1, \lambda_1)$ and the event venue coordinates $(\phi_2, \lambda_2)$ using the **Haversine Formula**:
+
+$$\Delta\phi = \phi_2 - \phi_1, \quad \Delta\lambda = \lambda_2 - \lambda_1$$
+
+$$a = \sin^2\left(\frac{\Delta\phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta\lambda}{2}\right)$$
+
+$$c = 2 \cdot \text{atan2}\left(\sqrt{a}, \sqrt{1 - a}\right)$$
+
+$$d = R \cdot c \quad (\text{where } R = 6,371,000 \text{ meters})$$
+
+If $d \leq \text{geofenceRadius}$, the attendance is accepted (`201 Created`).  
+If $d > \text{geofenceRadius}$, the submission is rejected (`403 Forbidden`).
 
 ---
 
-### 5. Built-in AI Circulation Assistant & Auto-Cataloging (LibraBot)
-- **LibraBot Circulation Copilot** (`/api/ai/chat`): Ingests real-time catalog context to answer circulation and library queries:
-  - *"Which books on algorithms are currently available?"*
-  - *"Where is Clean Code located on the shelves?"*
-  - *"Recommend 3 books for system design study."*
-  - *"What is the library loan policy and overdue fine structure?"*
-- **1-Click AI Book Autofill** (`/api/ai/autofill`): Uses Google Gemini to automatically detect category, author, shelf location code, and generate a concise 2-sentence synopsis from a book title or ISBN.
-- **Graceful Fallback**: If no `GEMINI_API_KEY` is provided, the application switches to its built-in rule-based semantic engine so all catalog lookup features continue to work smoothly offline!
-
----
-
-## 🛠️ Technology Stack
+## 🛠 Technology Stack
 
 | Layer | Technologies Used |
-| :--- | :--- |
-| **Frontend** | React 19, Vite 6, Tailwind CSS v3, Lucide Icons, Canvas Confetti |
-| **QR Engine** | `html5-qrcode` (camera scanner), `qrcode.react` (sticker generation) |
-| **Audio Engine** | Web Audio API (native hardware synthesizer for scan beeps) |
-| **Backend** | Node.js v24, Express 4, CORS, Dotenv |
-| **Database** | Native `node:sqlite` (ACID, SQLite 3.46 with WAL mode & foreign keys) |
-| **Data Export** | SheetJS (`xlsx`) for Excel reports, Native CSV streaming |
-| **Artificial Intelligence** | Google Gemini API (`@google/generative-ai` / Gemini 1.5 Flash) |
+|---|---|
+| **Frontend** | React 19, Vite, Tailwind CSS, Lucide Icons, Canvas Confetti |
+| **Maps & QR** | Leaflet (OpenStreetMap / CartoDB Voyager), `html5-qrcode`, `qrcode.react` |
+| **Backend** | Node.js, Express, JWT, bcryptjs |
+| **Database** | Persistent atomic JSON storage with zero external setup |
+| **Exports** | SheetJS `xlsx` for Excel, formatted CSV serializer |
+| **AI Integration** | Google Generative AI (`@google/generative-ai`) with local heuristic fallback |
+| **DevOps** | Docker, Docker Compose, Vercel Serverless Ready |
 
 ---
 
-## 📁 Project Structure
-
-```
-librahub/
-├── api/
-│   └── index.js                 # Vercel Serverless Function entry point
-├── backend/
-│   ├── src/
-│   │   ├── config/
-│   │   │   └── database.js      # Native SQLite database setup & auto-seeder
-│   │   ├── controllers/
-│   │   │   ├── bookController.js        # Book CRUD, stock checks, QR payload
-│   │   │   ├── borrowerController.js    # Member registration & lookup
-│   │   │   ├── transactionController.js # QR Issue, Return, Fine calculation
-│   │   │   ├── analyticsController.js   # Dashboard metrics & trends
-│   │   │   ├── exportController.js      # CSV & Excel (.xlsx) export engines
-│   │   │   └── aiController.js          # Google Gemini AI assistant & autofill
-│   │   ├── routes/                      # Modular Express route handlers
-│   │   ├── middleware/
-│   │   │   └── errorHandler.js          # Global error handling middleware
-│   │   ├── utils/
-│   │   │   └── seedData.js              # 12 engineering books, members & active loans
-│   │   ├── app.js                       # Express app configuration
-│   │   └── server.js                    # Local HTTP server runner (Port 5000)
-│   ├── data/
-│   │   └── library.sqlite               # Local persistent database
-│   ├── package.json
-│   └── .env.example
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Sidebar.jsx              # Navigation with active badges & Cicero quote
-│   │   │   ├── Header.jsx               # Search bar, Ctrl+K, theme toggle, profile
-│   │   │   ├── StatCard.jsx             # Metric card with pastel color variants
-│   │   │   ├── QRScannerModal.jsx       # Camera QR scanner + laser animation + test sim
-│   │   │   ├── QRBadgeModal.jsx         # Printable sticker card + PNG download
-│   │   │   ├── IssueModal.jsx           # Issue modal with stock reservation & confetti
-│   │   │   ├── ReturnModal.jsx          # Return modal with live overdue fine calculator
-│   │   │   ├── AddBookModal.jsx         # Add book with AI auto-fill
-│   │   │   ├── AIAssistantDrawer.jsx    # Gemini chatbot slide-over
-│   │   │   └── CommandPalette.jsx       # Global Ctrl+K command search
-│   │   ├── pages/
-│   │   │   ├── DashboardView.jsx        # Executive dashboard from design preview
-│   │   │   ├── BooksView.jsx            # Full catalog with search and filters
-│   │   │   ├── MembersView.jsx          # Registered borrowers list & card view
-│   │   │   └── TransactionsView.jsx     # Circulation history & export toolbar
-│   │   ├── services/
-│   │   │   └── api.js                   # Unified API client
-│   │   ├── utils/
-│   │   │   └── sound.js                 # Web Audio API scanner beep synthesizer
-│   │   ├── App.jsx                      # Master application state coordinator
-│   │   ├── main.jsx
-│   │   └── index.css                    # Tailwind + animations + print styles
-│   ├── package.json
-│   ├── vite.config.js                   # Vite config with /api dev proxy
-│   └── tailwind.config.js
-├── vercel.json                          # Vercel deployment configuration
-├── package.json                         # Root orchestration script (npm run dev)
-└── README.md
-```
-
----
-
-## 🏃 How to Run the Project Locally
+## 🚀 Quickstart & Local Setup
 
 ### Prerequisites
-- **Node.js**: Version `20.x` or `24.x` installed ([nodejs.org](https://nodejs.org/)).
-- **Git**: Installed.
+- Node.js (v18 or higher)
+- npm (v9 or higher)
 
-### Step 1: Clone the Repository
+### 1. Clone & Install Dependencies
 ```bash
-git clone <your-github-repo-url>
-cd librahub
-```
+# Clone the repository
+git clone <your-repo-url>
+cd NSCC
 
-### Step 2: Install All Dependencies
-Run the root install script to set up root, backend, and frontend packages simultaneously:
-```bash
+# Install all dependencies (root, backend, and frontend)
 npm run install:all
 ```
-*(Or install manually via `npm install && cd backend && npm install && cd ../frontend && npm install`)*
 
-### Step 3: Configure Environment Variables (Optional)
-Copy the example environment file:
+### 2. Configure Environment Variables
+Copy `.env.example` to `.env` inside `backend/`:
 ```bash
-cp backend/.env.example backend/.env
-```
-To enable live Google Gemini AI capabilities, add your Gemini API key:
-```env
 PORT=5000
 NODE_ENV=development
-GEMINI_API_KEY=your_gemini_api_key_here
+JWT_SECRET=geoattend-super-secret-production-key-2026
+GEMINI_API_KEY=your_gemini_api_key_here  # Optional: local heuristics engine used if omitted
 ```
-> *Note: If you leave `GEMINI_API_KEY` blank, the application automatically uses its built-in local knowledge engine without failing!*
 
-### Step 4: Launch the Full Application
-Start both the Express backend (port `5000`) and the Vite frontend (port `5173`) with a single command:
+### 3. Run in Development Mode
 ```bash
+# Runs both backend (port 5000) and frontend (port 5173) concurrently
 npm run dev
 ```
 
-Open your browser and navigate to:
-👉 **`http://localhost:5173`**
-
-The database will be automatically created and populated with sample books, members, active loans, and overdue records on first boot!
+Open your browser at `http://localhost:5173`.
 
 ---
 
-## 🐳 Docker Deployment (Optional 1-Command Setup)
+## 🐳 Docker Production Deployment
 
-LibraHub includes a production-ready multi-stage `Dockerfile` and `docker-compose.yml`:
+Run the complete multi-stage containerized production build with a single command:
 
 ```bash
-# Build and run containerized stack in background
-docker compose up -d --build
+docker compose up --build
 ```
-Access the application at `http://localhost:5000`. Persistent database storage is automatically maintained in the `librahub-sqlite-storage` volume.
+
+- Multi-stage build compiles the React 19 frontend into static assets.
+- Express server serves the REST API and the production frontend single-page bundle on `http://localhost:5000`.
+- Includes automated container health checks and persistent volume storage.
 
 ---
 
-## 🌐 Vercel Deployment Guide
+## 📡 API Reference & Endpoints
 
-This project is pre-configured for **1-click zero-friction Vercel deployment**:
+### 1. Authentication
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/auth/register` | Register a new user account |
+| `POST` | `/api/auth/login` | Sign in with email & password |
+| `POST` | `/api/auth/demo-login` | 1-Click fast login (`organizer` or `attendee`) |
+| `GET` | `/api/auth/me` | Retrieve profile of authenticated user |
 
-1. Push your repository to GitHub:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit of LibraHub"
-   git remote add origin https://github.com/<your-username>/librahub.git
-   git push -u origin main
-   ```
-2. Go to **[vercel.com](https://vercel.com/)** and import your GitHub repository.
-3. Vercel will automatically detect `vercel.json` and build the project:
-   - **Framework Preset**: Vite
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `frontend/dist`
-4. In Vercel Project Settings > **Environment Variables**, optionally add `GEMINI_API_KEY`.
-5. Click **Deploy**! You will receive a live public URL (e.g. `https://librahub-demo.vercel.app`).
+### 2. Events Management
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/events` | List all events with turnout statistics |
+| `GET` | `/api/events/:id` | Get details and geofence coordinates of an event |
+| `POST` | `/api/events` | Create a new event with geofence radius |
+| `PUT` | `/api/events/:id` | Update event parameters |
+| `DELETE` | `/api/events/:id` | Delete event and related attendance logs |
+| `POST` | `/api/events/:id/regenerate-qr` | Rotate dynamic cryptographic QR token |
 
-> **Can you host two projects on a single free Vercel account?**  
-> **Yes!** Vercel's free Hobby plan allows up to **100 separate projects** per account. You can host both Task 1 and Task 2 simultaneously at zero cost.
+### 3. Attendance Verification
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/attendance/verify-and-mark` | Verify QR token + GPS Haversine distance & record attendance |
+| `GET` | `/api/attendance/event/:eventId` | Filterable attendee list for an event |
+| `GET` | `/api/attendance/live/:eventId` | Real-time live attendance stats & check-in feed |
+| `POST` | `/api/attendance/manual-checkin` | Organizer manual override entry |
+| `GET` | `/api/attendance/my-history` | Personal check-in log for logged-in user |
+
+### 4. Data Export
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/export/csv/:eventId` | Download attendance records as CSV file |
+| `GET` | `/api/export/excel/:eventId` | Download attendance records as Excel (.xlsx) file |
+
+### 5. Analytics & AI
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/analytics/dashboard` | Aggregated 7-day trend, class breakdowns, and KPIs |
+| `POST` | `/api/ai/chat` | Natural language event & attendance assistant |
+| `POST` | `/api/ai/generate-description` | Automated event description writer |
 
 ---
 
-## 📡 REST API Documentation
+## 🔒 Implementation Decisions & Anti-Spoofing
 
-### Books Endpoints
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/books` | Get books with `?search=`, `?category=`, `?status=` filters |
-| `GET` | `/api/books/:bookId` | Get single book details and active loans |
-| `POST` | `/api/books` | Create a new book record |
-| `PUT` | `/api/books/:bookId` | Update book details and total copies |
-| `DELETE`| `/api/books/:bookId` | Delete book (guarded against active loans) |
-| `GET` | `/api/books/:bookId/qr` | Get book QR code data URL and payload |
-
-### Circulation & Transactions Endpoints
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/transactions/verify-qr` | Verify scanned QR code payload and check availability |
-| `POST` | `/api/transactions/issue` | Atomic checkout: decrements stock, records due date |
-| `POST` | `/api/transactions/return` | Atomic return: increments stock, calculates overdue fine |
-| `GET` | `/api/transactions` | Query full history with status and search filters |
-| `GET` | `/api/transactions/active` | Get all currently issued books with live overdue days |
-
-### Analytics & Reports Endpoints
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/analytics/dashboard` | Returns summary metrics, overdue count, categories, trends |
-| `GET` | `/api/export/csv` | Download complete issue/return history as CSV |
-| `GET` | `/api/export/excel` | Download multi-worksheet audit report as `.xlsx` |
-
-### Artificial Intelligence Endpoints
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/ai/chat` | Send question to LibraBot Gemini assistant |
-| `POST` | `/api/ai/autofill` | Auto-detect author, category, shelf, and synopsis |
+1. **Server-Side Distance Calculation**: The client provides raw device coordinates, but the server calculates the spherical distance using the Haversine formula against the venue origin to enforce the geofence perimeter.
+2. **Duplicate Submission Lock**: A combination index of `(userId, eventId)` and `(userEmail, eventId)` prevents double check-ins.
+3. **Dynamic QR Token Nonce**: QR payloads include unique timestamps and nonces that organizers can rotate at any time.
+4. **Offline Heuristics Fallback for AI**: If a Gemini API key is not supplied, the AI endpoints transition to local semantic analyzers so the system works 100% out of the box.
 
 ---
 
-## 💡 Important Design Decisions
+## 🧪 Automated Verification Suite
 
-1. **Why Native `node:sqlite` instead of Firebase / Supabase?**  
-   The assignment explicitly states: *"The use of Supabase and Firebase is strictly prohibited... to evaluate your understanding of implementing the backend, database operations, APIs, authentication, and server-side business logic yourself."* By using Node 24 native SQLite, the solution is 100% self-contained, lightweight, supports ACID transactions, and requires zero external database installation or cloud accounts.
-2. **Web Audio API Sound Synthesis**:  
-   Instead of loading external `.mp3` or `.wav` sound files that might fail due to network CORS or file path issues, the scanner sound uses a synthesized Web Audio oscillator. It creates a crisp, authentic dual-tone barcode beep natively in the browser.
-3. **Quick Test Simulator**:  
-   Recognizing that evaluators or grading systems may test the app on machines without camera permissions or in headless environments, a built-in 1-click test dropdown allows simulating an instant QR scan.
-4. **Printable Label Layout (`@media print`)**:  
-   Clicking "Print Label" uses CSS media queries to hide the surrounding dashboard chrome and render only the physical sticker label with barcode borders for physical shelf placement.
+Run the end-to-end automated test suite:
+
+```bash
+npm test
+# or
+node test-api-e2e.js
+```
+
+The test script automatically spins up the server in-process and tests:
+1. Health check endpoint status.
+2. 1-click organizer & student JWT authentication.
+3. Geofenced event creation.
+4. Successful check-in inside the geofence (201 Created).
+5. Duplicate check-in rejection (409 Conflict).
+6. Out-of-bounds check-in rejection (403 Forbidden).
+7. Live attendance statistics aggregation.
+8. CSV and Excel export stream validity.
+9. AI Assistant prompt generation.
 
 ---
 
-## 🎓 Concepts Learned & Demonstrated
-- Designing a normalized relational database schema with foreign key constraints, indexes, and concurrency guards.
-- Implementing atomic transactions in Node.js to ensure stock counters never decrement below zero.
-- Integrating hardware camera QR scanning (`html5-qrcode`) with real-time UI overlays and audio feedback.
-- Generating standards-compliant `.xlsx` spreadsheets and RFC 4180 CSV exports.
-- Architecting a monorepo that runs locally with hot-reloading and deploys seamlessly to Vercel Serverless Functions.
-- Prompt engineering and structured JSON output with Google Gemini models.
+## 📄 License
+MIT License. Built for enterprise and campus event attendance workflows.

@@ -1,7 +1,7 @@
 {
-  "name": "librahub-circulation-system",
-  "version": "1.0.0",
-  "description": "Library Book Issue & Return Management System with QR Scanning, Admin Analytics, and Gemini AI",
+  "name": "checkin-geoattend-system",
+  "version": "2.0.0",
+  "description": "QR-Based Geo-Tagged Event Attendance Management System with Live Dashboard, Haversine Geofencing, and Gemini AI",
   "main": "backend/src/server.js",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
@@ -16,13 +16,16 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
     "qrcode": "^1.5.4",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "playwright": "^1.63.0"
   }
 }

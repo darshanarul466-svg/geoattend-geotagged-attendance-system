@@ -1,4 +1,4 @@
-# Multi-Stage Dockerfile for LibraHub Production Deployment
+# Multi-Stage Dockerfile for CheckIn Production Deployment
 # -------------------------------------------------------------
 # Stage 1: Build the React 19 Frontend
 FROM node:22-alpine AS frontend-builder
@@ -26,7 +26,7 @@ COPY backend/ /app/backend/
 # Copy built frontend assets from stage 1 into backend public directory
 COPY --from=frontend-builder /app/frontend/dist /app/backend/public
 
-# Create data directory for SQLite persistence
+# Create data directory for file/JSON persistence
 RUN mkdir -p /app/backend/data
 
 # Environment configuration

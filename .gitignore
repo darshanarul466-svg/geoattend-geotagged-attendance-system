@@ -32,3 +32,9 @@ Thumbs.db
 backend/data/*.sqlite-journal
 backend/data/*.sqlite-wal
 backend/data/*.sqlite-shm
+
+# Separate Project & Demos
+LibraHub/
+demo-recordings/
+record-demo*.js
+

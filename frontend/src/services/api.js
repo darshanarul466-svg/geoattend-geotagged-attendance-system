@@ -1,125 +1,273 @@
-const API_BASE = '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-function getToken() {
-  return sessionStorage.getItem('librahub_token') || localStorage.getItem('librahub_token');
-}
-
-async function request(endpoint, options = {}) {
-  const url = `${API_BASE}${endpoint}`;
-  const token = getToken();
-  
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
-
+function getAuthHeaders() {
+  const token = localStorage.getItem('geoattend_token');
+  const headers = { 'Content-Type': 'application/json' };
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-
-  const config = {
-    ...options,
-    headers,
-  };
-
-  try {
-    const res = await fetch(url, config);
-    const contentType = res.headers.get('content-type') || '';
-
-    if (!res.ok) {
-      let errorMsg = `HTTP Error ${res.status}`;
-      if (contentType.includes('application/json')) {
-        const errData = await res.json();
-        errorMsg = errData.message || errorMsg;
-      } else {
-        errorMsg = await res.text();
-      }
-      const err = new Error(errorMsg);
-      err.status = res.status;
-      throw err;
-    }
-
-    if (contentType.includes('application/json')) {
-      return await res.json();
-    }
-    return res;
-  } catch (err) {
-    console.error(`[API Error] ${options.method || 'GET'} ${url}:`, err.message);
-    throw err;
-  }
+  return headers;
 }
 
 export const api = {
-  // Authentication & RBAC
-  login: (identifier, password) => 
-    request('/auth/login', { method: 'POST', body: JSON.stringify({ identifier, password }) }),
-  register: (userData) => 
-    request('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),
-  getMe: () => 
-    request('/auth/me'),
-  getUsers: () => 
-    request('/auth/users'),
-  updateUserRole: (id, role) => 
-    request(`/auth/users/${encodeURIComponent(id)}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
-  getToken,
-  setToken: (token, remember = false) => {
-    if (remember) {
-      localStorage.setItem('librahub_token', token);
-    } else {
-      sessionStorage.setItem('librahub_token', token);
+  // One-time System Configuration
+  config: {
+    async getStatus() {
+      const res = await fetch(`${API_BASE_URL}/config/status`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to fetch config status');
+      return data;
+    },
+
+    async setup(configData) {
+      const res = await fetch(`${API_BASE_URL}/config/setup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(configData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Setup failed');
+      return data;
     }
   },
-  clearToken: () => {
-    sessionStorage.removeItem('librahub_token');
-    localStorage.removeItem('librahub_token');
+
+  // Authentication
+  auth: {
+    async login(email, password) {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Login failed');
+      if (data.token) {
+        localStorage.setItem('geoattend_token', data.token);
+        localStorage.setItem('geoattend_user', JSON.stringify(data.user));
+      }
+      return data;
+    },
+
+    async register(userData) {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Registration failed');
+      if (data.token) {
+        localStorage.setItem('geoattend_token', data.token);
+        localStorage.setItem('geoattend_user', JSON.stringify(data.user));
+      }
+      return data;
+    },
+
+    async demoLogin(role = 'organizer') {
+      const res = await fetch(`${API_BASE_URL}/auth/demo-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Demo login failed');
+      if (data.token) {
+        localStorage.setItem('geoattend_token', data.token);
+        localStorage.setItem('geoattend_user', JSON.stringify(data.user));
+      }
+      return data;
+    },
+
+    async getMe() {
+      const res = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to fetch user');
+      return data.user;
+    },
+
+    async getUsers(role) {
+      const url = role ? `${API_BASE_URL}/auth/users?role=${role}` : `${API_BASE_URL}/auth/users`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to fetch users');
+      return data.users || [];
+    },
+
+    logout() {
+      localStorage.removeItem('geoattend_token');
+      localStorage.removeItem('geoattend_user');
+    },
+
+    getCurrentUser() {
+      try {
+        const u = localStorage.getItem('geoattend_user');
+        return u ? JSON.parse(u) : null;
+      } catch {
+        return null;
+      }
+    }
   },
 
-  // Dashboard & Analytics
-  getDashboardStats: () => request('/analytics/dashboard'),
+  // Events API
+  events: {
+    async getAll(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      const res = await fetch(`${API_BASE_URL}/events${query ? `?${query}` : ''}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to load events');
+      return data.events || [];
+    },
 
-  // Books
-  getBooks: (params = {}) => {
-    const query = new URLSearchParams();
-    if (params.search) query.append('search', params.search);
-    if (params.category && params.category !== 'All') query.append('category', params.category);
-    if (params.status && params.status !== 'all') query.append('status', params.status);
-    const qStr = query.toString() ? `?${query.toString()}` : '';
-    return request(`/books${qStr}`);
+    async getById(id) {
+      const res = await fetch(`${API_BASE_URL}/events/${id}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to load event');
+      return data.event;
+    },
+
+    async create(eventData) {
+      const res = await fetch(`${API_BASE_URL}/events`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(eventData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to create event');
+      return data.event;
+    },
+
+    async update(id, eventData) {
+      const res = await fetch(`${API_BASE_URL}/events/${id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(eventData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to update event');
+      return data.event;
+    },
+
+    async delete(id) {
+      const res = await fetch(`${API_BASE_URL}/events/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to delete event');
+      return data;
+    },
+
+    async regenerateQr(id) {
+      const res = await fetch(`${API_BASE_URL}/events/${id}/regenerate-qr`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to refresh QR');
+      return data.qrSecret;
+    }
   },
-  getBookById: (bookId) => request(`/books/${encodeURIComponent(bookId)}`),
-  createBook: (bookData) => request('/books', { method: 'POST', body: JSON.stringify(bookData) }),
-  updateBook: (bookId, bookData) => request(`/books/${encodeURIComponent(bookId)}`, { method: 'PUT', body: JSON.stringify(bookData) }),
-  deleteBook: (bookId) => request(`/books/${encodeURIComponent(bookId)}`, { method: 'DELETE' }),
-  getBookQR: (bookId) => request(`/books/${encodeURIComponent(bookId)}/qr`),
 
-  // Borrowers
-  getBorrowers: (search = '') => {
-    const qStr = search ? `?search=${encodeURIComponent(search)}` : '';
-    return request(`/borrowers${qStr}`);
+  // Attendance API
+  attendance: {
+    async verifyAndMark({ eventId, qrData, userLat, userLng, accuracy }) {
+      const res = await fetch(`${API_BASE_URL}/attendance/verify-and-mark`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ eventId, qrData, userLat, userLng, accuracy })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const err = new Error(data.message || 'Attendance verification failed');
+        err.code = data.code;
+        err.details = data.details;
+        throw err;
+      }
+      return data;
+    },
+
+    async getEventAttendance(eventId, params = {}) {
+      const query = new URLSearchParams(params).toString();
+      const res = await fetch(`${API_BASE_URL}/attendance/event/${eventId}${query ? `?${query}` : ''}`, {
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to load attendees');
+      return data.records || [];
+    },
+
+    async getLiveStats(eventId) {
+      const res = await fetch(`${API_BASE_URL}/attendance/live/${eventId}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to load live stats');
+      return data;
+    },
+
+    async manualCheckin(payload) {
+      const res = await fetch(`${API_BASE_URL}/attendance/manual-checkin`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Manual checkin failed');
+      return data.attendance;
+    },
+
+    async getMyHistory() {
+      const res = await fetch(`${API_BASE_URL}/attendance/my-history`, {
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to load personal history');
+      return data.records || [];
+    }
   },
-  getBorrowerById: (id) => request(`/borrowers/${encodeURIComponent(id)}`),
-  createBorrower: (borrowerData) => request('/borrowers', { method: 'POST', body: JSON.stringify(borrowerData) }),
 
-  // Transactions (QR Issue & Return)
-  verifyScannedQR: (qrCode) => request('/transactions/verify-qr', { method: 'POST', body: JSON.stringify({ qrCode }) }),
-  issueBook: (data) => request('/transactions/issue', { method: 'POST', body: JSON.stringify(data) }),
-  returnBook: (data) => request('/transactions/return', { method: 'POST', body: JSON.stringify(data) }),
-  getTransactions: (params = {}) => {
-    const query = new URLSearchParams();
-    if (params.status && params.status !== 'all') query.append('status', params.status);
-    if (params.search) query.append('search', params.search);
-    const qStr = query.toString() ? `?${query.toString()}` : '';
-    return request(`/transactions${qStr}`);
+  // Analytics API
+  analytics: {
+    async getDashboardStats() {
+      const res = await fetch(`${API_BASE_URL}/analytics/dashboard`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to load dashboard metrics');
+      return data;
+    }
   },
-  getActiveLoans: () => request('/transactions/active'),
 
-  // AI Integration
-  chatAI: (message, conversationHistory = []) => 
-    request('/ai/chat', { method: 'POST', body: JSON.stringify({ message, conversationHistory }) }),
-  autofillBookAI: (title, isbn) => 
-    request('/ai/autofill', { method: 'POST', body: JSON.stringify({ title, isbn }) }),
+  // Export API
+  export: {
+    getCsvUrl(eventId) {
+      return `${API_BASE_URL}/export/csv/${eventId}`;
+    },
+    getExcelUrl(eventId) {
+      return `${API_BASE_URL}/export/excel/${eventId}`;
+    }
+  },
 
-  // Exports
-  exportCSVUrl: `${API_BASE}/export/csv`,
-  exportExcelUrl: `${API_BASE}/export/excel`,
+  // AI Assistant API
+  ai: {
+    async chat(prompt) {
+      const res = await fetch(`${API_BASE_URL}/ai/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'AI query failed');
+      return data.answer;
+    },
+
+    async generateDescription(payload) {
+      const res = await fetch(`${API_BASE_URL}/ai/generate-description`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'AI description generation failed');
+      return data.description;
+    }
+  }
 };

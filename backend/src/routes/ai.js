@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const aiController = require('../controllers/aiController');
+const { chatAssistant, generateDescription } = require('../controllers/aiController');
 
-router.post('/chat', aiController.chatWithAssistant);
-router.post('/autofill', aiController.autoFillBookMetadata);
+router.post('/chat', chatAssistant);
+router.post('/generate-description', generateDescription);
 
 module.exports = router;

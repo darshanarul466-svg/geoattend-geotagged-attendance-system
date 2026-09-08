@@ -5,13 +5,13 @@ require('dotenv').config();
 const { getDatabase } = require('./config/database');
 const { errorHandler } = require('./middleware/errorHandler');
 
-const bookRoutes = require('./routes/books');
-const borrowerRoutes = require('./routes/borrowers');
-const transactionRoutes = require('./routes/transactions');
+const authRoutes = require('./routes/auth');
+const eventRoutes = require('./routes/events');
+const attendanceRoutes = require('./routes/attendance');
 const analyticsRoutes = require('./routes/analytics');
 const exportRoutes = require('./routes/export');
 const aiRoutes = require('./routes/ai');
-const authRoutes = require('./routes/auth');
+const configRoutes = require('./routes/config');
 
 const app = express();
 
@@ -32,20 +32,20 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
-    system: 'LibraHub Library Management System API',
-    version: '1.0.0',
+    system: 'CheckIn / GeoAttend Campus Attendance Management System API',
+    version: '2.0.0',
     timestamp: new Date().toISOString()
   });
 });
 
 // API Routes
-app.use('/api/books', bookRoutes);
-app.use('/api/borrowers', borrowerRoutes);
-app.use('/api/transactions', transactionRoutes);
+app.use('/api/config', configRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/attendance', attendanceRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/ai', aiRoutes);
-app.use('/api/auth', authRoutes);
 
 // Catch-all 404 handler for unknown API routes
 app.use('/api/*', (req, res) => {
@@ -58,9 +58,9 @@ app.use('/api/*', (req, res) => {
 // In production (e.g. Docker or single-server deployment), serve built frontend
 const path = require('node:path');
 const fs = require('node:fs');
-const publicPath = path.join(__dirname, '../public');
 const distPath = path.join(__dirname, '../../frontend/dist');
-const staticPath = fs.existsSync(publicPath) ? publicPath : (fs.existsSync(distPath) ? distPath : null);
+const publicPath = path.join(__dirname, '../public');
+const staticPath = fs.existsSync(distPath) ? distPath : (fs.existsSync(publicPath) ? publicPath : null);
 
 if (staticPath) {
   app.use(express.static(staticPath));

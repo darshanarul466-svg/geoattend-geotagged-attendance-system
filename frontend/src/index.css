@@ -72,3 +72,21 @@
     display: none !important;
   }
 }
+
+/* Html5QrCode Camera Viewfinder styling */
+#html5-qr-reader-region {
+  border: none !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#html5-qr-reader-region video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 1rem !important;
+}
+
+#html5-qr-reader-region img {
+  display: none !important;
+}

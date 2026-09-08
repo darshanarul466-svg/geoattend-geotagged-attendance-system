@@ -1,131 +1,116 @@
-const XLSX = require('xlsx');
+const xlsx = require('xlsx');
 const { getDatabase } = require('../config/database');
 
-const FINE_PER_DAY = 5.0;
-
-function fetchTransactions() {
-  const db = getDatabase();
-  const rows = db.prepare(`
-    SELECT 
-      b.title as book_title,
-      b.author as book_author,
-      t.book_id,
-      m.name as issued_to_name,
-      m.student_id as issued_to_id,
-      m.email as issued_to_email,
-      t.issue_timestamp,
-      t.due_date,
-      t.return_timestamp,
-      t.status,
-      t.fine_amount,
-      t.notes
-    FROM transactions t
-    JOIN books b ON t.book_id = b.book_id
-    JOIN borrowers m ON t.borrower_id = m.id
-    ORDER BY t.issue_timestamp DESC
-  `).all();
-
-  const now = new Date();
-  return rows.map(r => {
-    const due = new Date(r.due_date);
-    const isOverdue = r.status === 'ISSUED' && now > due;
-    const daysOverdue = isOverdue ? Math.ceil((now - due) / (1000 * 60 * 60 * 24)) : 0;
-    return {
-      'Book Title': r.book_title,
-      'Author': r.book_author,
-      'Book ID': r.book_id,
-      'Issued To': `${r.issued_to_name} (${r.issued_to_id})`,
-      'Borrower Email': r.issued_to_email,
-      'Issue Timestamp': r.issue_timestamp ? new Date(r.issue_timestamp).toLocaleString() : 'N/A',
-      'Due Date': r.due_date ? new Date(r.due_date).toLocaleDateString() : 'N/A',
-      'Return Timestamp': r.return_timestamp ? new Date(r.return_timestamp).toLocaleString() : 'Not Returned',
-      'Current Status': r.status,
-      'Days Overdue': daysOverdue > 0 ? `${daysOverdue} Days` : 'None',
-      'Fine (INR)': r.status === 'RETURNED' ? `₹${r.fine_amount.toFixed(2)}` : (daysOverdue > 0 ? `₹${(daysOverdue * FINE_PER_DAY).toFixed(2)} (est)` : '₹0.00'),
-      'Notes': r.notes || ''
-    };
-  });
+function escapeCsv(field) {
+  if (field === null || field === undefined) return '""';
+  const str = String(field).replace(/"/g, '""');
+  return `"${str}"`;
 }
 
-/**
- * Export complete history as CSV
- */
-exports.exportCSV = (req, res, next) => {
+// GET /api/export/csv/:eventId
+function exportCsv(req, res) {
   try {
-    const data = fetchTransactions();
+    const { eventId } = req.params;
+    const db = getDatabase();
+    const event = db.events.find(e => e.id === eventId);
+    const records = (db.attendances || []).filter(a => a.eventId === eventId);
 
-    if (data.length === 0) {
-      return res.status(404).send('No transaction data found to export.');
-    }
+    const eventName = event ? event.title : 'Attendance_Report';
+    const filename = `${eventName.replace(/[^a-zA-Z0-9_-]/g, '_')}_attendance_${Date.now()}.csv`;
 
-    const headers = Object.keys(data[0]);
-    const csvRows = [];
-    csvRows.push(headers.map(h => `"${h.replace(/"/g, '""')}"`).join(','));
+    const headers = [
+      'Full Name',
+      'Registration ID',
+      'Email Address',
+      'Department',
+      'Attendance Status',
+      'Verification Method',
+      'Distance from Venue (meters)',
+      'Allowed Geofence Radius (meters)',
+      'Timestamp (ISO)',
+      'Timestamp (Local Time)'
+    ];
 
-    for (const row of data) {
-      const values = headers.map(h => {
-        const val = row[h] !== null && row[h] !== undefined ? String(row[h]) : '';
-        return `"${val.replace(/"/g, '""')}"`;
-      });
-      csvRows.push(values.join(','));
-    }
+    const rows = records.map(r => [
+      escapeCsv(r.userName),
+      escapeCsv(r.userRegId),
+      escapeCsv(r.userEmail),
+      escapeCsv(r.userDepartment || 'N/A'),
+      escapeCsv(r.status),
+      escapeCsv(r.verificationMethod || 'QR_AND_GEO'),
+      escapeCsv(r.distanceMeters !== undefined ? r.distanceMeters : 'N/A'),
+      escapeCsv(r.allowedRadius || 'N/A'),
+      escapeCsv(r.timestamp),
+      escapeCsv(new Date(r.timestamp).toLocaleString())
+    ]);
 
-    const csvContent = csvRows.join('\r\n');
-    const dateStr = new Date().toISOString().split('T')[0];
-    const filename = `library-issue-return-history-${dateStr}.csv`;
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\r\n');
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.status(200).send(csvContent);
+    return res.status(200).send(csvContent);
   } catch (error) {
-    next(error);
+    return res.status(500).json({ success: false, message: error.message });
   }
-};
+}
 
-/**
- * Export complete audit report as Excel (.xlsx) with multiple sheets
- */
-exports.exportExcel = (req, res, next) => {
+// GET /api/export/excel/:eventId
+function exportExcel(req, res) {
   try {
+    const { eventId } = req.params;
     const db = getDatabase();
-    const transactions = fetchTransactions();
+    const event = db.events.find(e => e.id === eventId);
+    const records = (db.attendances || []).filter(a => a.eventId === eventId);
 
-    // Sheet 1: Transactions
-    const wsTransactions = XLSX.utils.json_to_sheet(transactions);
+    const eventName = event ? event.title : 'Attendance_Report';
+    const filename = `${eventName.replace(/[^a-zA-Z0-9_-]/g, '_')}_attendance_${Date.now()}.xlsx`;
 
-    // Sheet 2: Books Inventory
-    const books = db.prepare(`
-      SELECT book_id as 'Book ID', title as 'Title', author as 'Author', category as 'Category',
-             total_copies as 'Total Copies', available_copies as 'Available Copies',
-             (total_copies - available_copies) as 'Issued Copies', shelf_location as 'Shelf Location'
-      FROM books
-      ORDER BY category, title
-    `).all();
-    const wsBooks = XLSX.utils.json_to_sheet(books);
+    const data = records.map((r, idx) => ({
+      'S.No': idx + 1,
+      'Full Name': r.userName || 'Unknown',
+      'Registration ID': r.userRegId || 'N/A',
+      'Email Address': r.userEmail || 'N/A',
+      'Department': r.userDepartment || 'N/A',
+      'Status': r.status || 'VERIFIED',
+      'Verification Method': r.verificationMethod || 'QR_AND_GEO',
+      'Distance (m)': r.distanceMeters !== undefined ? r.distanceMeters : 0,
+      'Geofence Radius (m)': r.allowedRadius || 100,
+      'Timestamp': new Date(r.timestamp).toLocaleString()
+    }));
 
-    // Sheet 3: Registered Borrowers
-    const borrowers = db.prepare(`
-      SELECT student_id as 'Student ID', name as 'Name', email as 'Email', phone as 'Phone', department as 'Department',
-             created_at as 'Registered Date'
-      FROM borrowers
-      ORDER BY name
-    `).all();
-    const wsBorrowers = XLSX.utils.json_to_sheet(borrowers);
+    const worksheet = xlsx.utils.json_to_sheet(data);
 
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, wsTransactions, 'Issue-Return History');
-    XLSX.utils.book_append_sheet(wb, wsBooks, 'Book Inventory');
-    XLSX.utils.book_append_sheet(wb, wsBorrowers, 'Registered Members');
+    const colWidths = [
+      { wch: 6 },
+      { wch: 24 },
+      { wch: 18 },
+      { wch: 28 },
+      { wch: 24 },
+      { wch: 14 },
+      { wch: 20 },
+      { wch: 14 },
+      { wch: 18 },
+      { wch: 22 }
+    ];
+    worksheet['!cols'] = colWidths;
 
-    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-    const dateStr = new Date().toISOString().split('T')[0];
-    const filename = `library-audit-report-${dateStr}.xlsx`;
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, worksheet, 'Attendance Records');
+
+    const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.status(200).send(buffer);
+    return res.status(200).send(buffer);
   } catch (error) {
-    next(error);
+    return res.status(500).json({ success: false, message: error.message });
   }
+}
+
+module.exports = {
+  exportCsv,
+  exportExcel
 };
