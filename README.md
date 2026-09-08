@@ -1,4 +1,4 @@
-# NSCC Campus Systems Monorepo
+# NSCC Campus Systems
 
 Welcome to the unified repository containing both full-stack campus management systems:
 
