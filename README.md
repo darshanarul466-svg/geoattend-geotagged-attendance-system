@@ -1,3 +1,11 @@
+# NSCC Campus Systems Monorepo
+
+> This repository houses both comprehensive enterprise campus systems:
+> 1. **[Task 1: LibraHub — Central Library Circulation Management System](./LibraHub)**
+> 2. **[Task 2: CheckIn / GeoAttend — QR & GPS Geotagged Real-Time Attendance Management System](./)** (Root)
+
+---
+
 # CheckIn — QR-Based Geo-Tagged Campus Attendance Management System
 
 > A modern, full-stack, enterprise-grade attendance management system that enables event organizers and faculty to securely record attendance using high-contrast QR code scanning combined with sub-meter Haversine geolocation verification.

@@ -32,19 +32,3 @@ Thumbs.db
 backend/data/*.sqlite-journal
 backend/data/*.sqlite-wal
 backend/data/*.sqlite-shm
-
-# Monorepo child project node_modules and builds
-LibraHub/node_modules/
-LibraHub/backend/node_modules/
-LibraHub/frontend/node_modules/
-LibraHub/frontend/dist/
-LibraHub/backend/data/*.sqlite-journal
-LibraHub/backend/data/*.sqlite-wal
-LibraHub/backend/data/*.sqlite-shm
-LibraHub/**/.env
-LibraHub/**/.env.*
-
-# Recordings & Demos
-demo-recordings/
-record-demo*.js
-

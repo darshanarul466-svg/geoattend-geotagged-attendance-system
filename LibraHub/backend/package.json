@@ -1,0 +1,20 @@
+{
+  "name": "librahub-backend",
+  "version": "1.0.0",
+  "description": "Express REST API with node:sqlite, QR generation, Excel export, and Gemini AI for Central Library Management",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/utils/seedData.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "qrcode": "^1.5.4",
+    "xlsx": "^0.18.5"
+  }
+}
