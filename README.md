@@ -1,12 +1,36 @@
 # NSCC Campus Systems Monorepo
 
-> This repository houses both comprehensive enterprise campus systems:
-> 1. **[Task 1: LibraHub — Central Library Circulation Management System](./LibraHub)**
-> 2. **[Task 2: CheckIn / GeoAttend — QR & GPS Geotagged Real-Time Attendance Management System](./)** (Root)
+Welcome to the unified repository containing both full-stack campus management systems:
+
+| System | Description | Folder / Path | Primary Port |
+|---|---|---|---|
+| **Task 1: LibraHub** | Central Library Circulation & Management System with SQLite, QR Badges, Sound FX, and AI assistant | [`./LibraHub`](./LibraHub) | `5174` (UI) / `5001` (API) |
+| **Task 2: CheckIn / GeoAttend** | QR-Based Geo-Tagged Real-Time Attendance Management System with Leaflet GPS mapping & anti-spoofing | Root (`./frontend`, `./backend`) | `5173` (UI) / `5000` (API) |
 
 ---
 
-# CheckIn — QR-Based Geo-Tagged Campus Attendance Management System
+### 🚀 Quick Links & How to Run Both Projects
+
+#### 1. Running Task 2: CheckIn / GeoAttend (Root)
+```bash
+# Install dependencies & run both backend (5000) and frontend (5173)
+npm run install:all
+npm run dev
+```
+Open: **http://localhost:5173**
+
+#### 2. Running Task 1: LibraHub
+```bash
+# Navigate to the LibraHub directory
+cd LibraHub
+npm run install:all
+npm run dev
+```
+Open: **http://localhost:5174**
+
+---
+
+# Task 2: CheckIn — QR-Based Geo-Tagged Campus Attendance System
 
 > A modern, full-stack, enterprise-grade attendance management system that enables event organizers and faculty to securely record attendance using high-contrast QR code scanning combined with sub-meter Haversine geolocation verification.
 
